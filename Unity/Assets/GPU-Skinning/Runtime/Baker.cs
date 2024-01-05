@@ -14,7 +14,7 @@ namespace Seino.GpuSkinning.Runtime
             this.Animator = GetComponent<Animator>();
         }
 
-        [Button("烘焙")]
+        [Button("烘焙动画")]
         public void Bake()
         {
             var clips = this.Animator.runtimeAnimatorController?.animationClips;
@@ -48,24 +48,6 @@ namespace Seino.GpuSkinning.Runtime
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
             Color[] colors = new Color[width * height];
-
-            var mesh = renderer.sharedMesh;
-            var skinMesh = Instantiate(mesh);
-            var boneWeights = mesh.boneWeights;
-            Vector2[] uv2 = new Vector2[boneWeights.Length] ;
-            Vector2[] uv3 = new Vector2[boneWeights.Length] ;
-            
-            for (int i = 0; i < boneWeights.Length; i++)
-            {
-                var boneWeight = boneWeights[i];
-                uv2[i] = new Vector4(boneWeight.boneIndex0, boneWeight.weight0);
-                uv3[i] = new Vector4(boneWeight.boneIndex1, boneWeight.weight1);
-            }
-            skinMesh.SetUVs(1, uv2);
-            skinMesh.SetUVs(2, uv3);
-            skinMesh.name = mesh.name;
-            AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
-            AssetDatabase.SaveAssets();
             
             for (int i = 0; i < frameCount; i++)
             {
@@ -97,6 +79,28 @@ namespace Seino.GpuSkinning.Runtime
             AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        [Button("烘焙Mesh")]
+        private void BakeMesh(SkinnedMeshRenderer renderer)
+        {
+            var mesh = renderer.sharedMesh;
+            var skinMesh = Instantiate(mesh);
+            var boneWeights = mesh.boneWeights;
+            Vector2[] uv2 = new Vector2[boneWeights.Length] ;
+            Vector2[] uv3 = new Vector2[boneWeights.Length] ;
+            
+            for (int i = 0; i < boneWeights.Length; i++)
+            {
+                var boneWeight = boneWeights[i];
+                uv2[i] = new Vector4(boneWeight.boneIndex0, boneWeight.weight0);
+                uv3[i] = new Vector4(boneWeight.boneIndex1, boneWeight.weight1);
+            }
+            skinMesh.SetUVs(1, uv2);
+            skinMesh.SetUVs(2, uv3);
+            skinMesh.name = mesh.name;
+            AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
+            AssetDatabase.SaveAssets();
         }
         
         private static Vector4 EncodeFloatRGBA(float v)

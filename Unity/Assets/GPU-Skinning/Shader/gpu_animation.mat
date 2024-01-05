@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AnimaTex:
-        m_Texture: {fileID: 2800000, guid: 22af6eb1041d85542866a6af2a6481f6, type: 2}
+        m_Texture: {fileID: 2800000, guid: 9e36a14ac1b956f4894d23436def38b5, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Anima_Tex:
@@ -107,6 +107,7 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _FrameRate: 30
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
