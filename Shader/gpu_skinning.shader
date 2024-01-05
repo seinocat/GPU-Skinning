@@ -5,12 +5,14 @@ Shader "Seino/Animation/gpu_skinning"
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimaTex ("Anima Tex", 2D) = "white"{}
         _AnimaBlendTex ("AnimaBlend Tex", 2D) = "white"{}
+        _FrameRate("Frame Rate", int) = 30
     }
     SubShader
     {
         Pass
         {
             HLSLPROGRAM
+            
             #pragma vertex vert
             #pragma fragment frag
 
@@ -26,6 +28,7 @@ Shader "Seino/Animation/gpu_skinning"
             float4 _AnimaTex_TexelSize;
             sampler2D _AnimaBlendTex;
             float4 _AnimaBlendTex_TexelSize;
+            int _FrameRate;
             CBUFFER_END
 
             struct appdata
@@ -48,35 +51,35 @@ Shader "Seino/Animation/gpu_skinning"
                 return dot(enc, kDecodeDot);
             }
 
-            float2 getUV(int arrayIndex)
+            float2 getUV(int texIndex)
             {
-                int x = arrayIndex / 612 ;
-                int y = arrayIndex - x * 612;
-                return float2(y / 612.0,  x / 29.0);
+                int row = texIndex / _AnimaTex_TexelSize.z ;
+                int col = texIndex - row * _AnimaTex_TexelSize.z;
+                return float2(col / _AnimaTex_TexelSize.z,  row / _AnimaTex_TexelSize.w);
             }
             
-            float4 getMatrixRow(int index)
+            float4 getMatrixRow(int texIndex)
             {
-                float2 uv = getUV(index);
+                float2 uv = getUV(texIndex);
                 float r = DecodeFloatRGBA(tex2Dlod(_AnimaTex, float4(float2(uv.x + 0.5 * _AnimaTex_TexelSize.x, uv.y + 0.5 * _AnimaTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(index + 1);
+                uv = getUV(texIndex + 1);
                 float g = DecodeFloatRGBA(tex2Dlod(_AnimaTex, float4(float2(uv.x + 0.5 * _AnimaTex_TexelSize.x, uv.y + 0.5 * _AnimaTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(index + 2);
+                uv = getUV(texIndex + 2);
                 float b = DecodeFloatRGBA(tex2Dlod(_AnimaTex, float4(float2(uv.x + 0.5 * _AnimaTex_TexelSize.x, uv.y + 0.5 * _AnimaTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(index + 3);
+                uv = getUV(texIndex + 3);
                 float a = DecodeFloatRGBA(tex2Dlod(_AnimaTex, float4(float2(uv.x + 0.5 * _AnimaTex_TexelSize.x, uv.y + 0.5 * _AnimaTex_TexelSize.y), 0, 0)));
 
                 return float4(r,g,b,a) * 100 - 50;
             }
 
-            float4x4 getMatrix(int index)
+            float4x4 getMatrix(int texIndex)
             {
-                float4 row1 = getMatrixRow(index);
-                float4 row2 = getMatrixRow(index + 4);
-                float4 row3 = getMatrixRow(index + 8);
+                float4 row1 = getMatrixRow(texIndex);
+                float4 row2 = getMatrixRow(texIndex + 4);
+                float4 row3 = getMatrixRow(texIndex + 8);
                 float4 row4 = float4(0,0,0,1);
                 return float4x4(row1, row2, row3, row4);
             }
@@ -84,24 +87,24 @@ Shader "Seino/Animation/gpu_skinning"
             v2f vert (appdata v)
             {
                 v2f o;
-                
-                int frame = (_Time.y * 30);
-                frame = fmod(frame, 29);
 
+                int boneCount = _AnimaTex_TexelSize.z / 12;
+                int frameCount = _AnimaTex_TexelSize.w;
+                
+                int frame = fmod(_Time.y * _FrameRate, frameCount);
                 float boneIndex = (int)v.uv1.x;
                 float boneWeight = v.uv1.y;
-                float arrayIndex = (boneIndex + frame * 51) * 12;
+                float texIndex = (boneIndex + frame * boneCount) * 12;
 
-                float4x4 mat1 = getMatrix(arrayIndex);
+                float4x4 mat1 = getMatrix(texIndex);
 
                 boneIndex = (int)v.uv2.x;
-                arrayIndex = ( boneIndex + frame * 51) * 12;
-                float4x4 mat2 = getMatrix(arrayIndex);
+                texIndex = (boneIndex + frame * boneCount) * 12;
+                float4x4 mat2 = getMatrix(texIndex);
 
                 float4 pos = mul(mat1, v.vertex) * boneWeight + mul(mat2, v.vertex) * (1 - boneWeight);
                 o.vertex = TransformObjectToHClip(pos);
                 
-                // o.vertex = TransformObjectToHClip(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
