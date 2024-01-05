@@ -1,4 +1,7 @@
-﻿using Sirenix.OdinInspector;
+﻿#if UNITY_EDITOR
+
+using System.IO;
+using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +16,14 @@ namespace Seino.GpuSkinning.Runtime
         {
             this.Animator = GetComponent<Animator>();
         }
+        
+        [Button("检查")]
+        public void Check()
+        {
+            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Generate/Walk_N.asset");
+            var colors = tex.GetPixels();
+            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/Generate/RobotKile.asset");
+        }
 
         [Button("烘焙动画")]
         public void Bake()
@@ -23,15 +34,6 @@ namespace Seino.GpuSkinning.Runtime
             {
                 BakeBoneMatrixTex(renderer, clip);
             }
-        }
-        
-        [Button("检查")]
-        public void Check()
-        {
-            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Generate/Walk_N.asset");
-            var colors = tex.GetPixels();
-            
-            Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/Generate/RobotKile.asset");
         }
 
         private void BakeBoneMatrixTex(SkinnedMeshRenderer renderer, AnimationClip clip)
@@ -76,8 +78,11 @@ namespace Seino.GpuSkinning.Runtime
             tex.SetPixels(colors);
             tex.Apply();
             
-            AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}.asset");
-            AssetDatabase.SaveAssets();
+            var bytes = tex.EncodeToPNG();
+            
+            string path = Application.dataPath + $"/Generate/{tex.name}.png";
+            File.WriteAllBytes(path, bytes);
+            
             AssetDatabase.Refresh();
         }
 
@@ -93,9 +98,10 @@ namespace Seino.GpuSkinning.Runtime
             for (int i = 0; i < boneWeights.Length; i++)
             {
                 var boneWeight = boneWeights[i];
-                uv2[i] = new Vector4(boneWeight.boneIndex0, boneWeight.weight0);
-                uv3[i] = new Vector4(boneWeight.boneIndex1, boneWeight.weight1);
+                uv2[i] = new Vector2(boneWeight.boneIndex0, boneWeight.weight0);
+                uv3[i] = new Vector2(boneWeight.boneIndex1, boneWeight.weight1);
             }
+            
             skinMesh.SetUVs(1, uv2);
             skinMesh.SetUVs(2, uv3);
             skinMesh.name = mesh.name;
@@ -116,3 +122,6 @@ namespace Seino.GpuSkinning.Runtime
         
     }
 }
+
+#endif
+

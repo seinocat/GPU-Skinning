@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AnimaTex:
-        m_Texture: {fileID: 2800000, guid: 9e36a14ac1b956f4894d23436def38b5, type: 2}
+        m_Texture: {fileID: 2800000, guid: c149091407e12964fbe2f6fb0a81bb8b, type: 2}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Anima_Tex:
