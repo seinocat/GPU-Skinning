@@ -1,4 +1,4 @@
-Shader "Seino/Animation/gpu_skinning"
+Shader "Seino/Animation/gpu_skinning_instancing"
 {
     Properties
     {
@@ -17,6 +17,7 @@ Shader "Seino/Animation/gpu_skinning"
             #pragma fragment frag
 
             #pragma enable_d3d11_debug_symbols
+            #pragma multi_compile_instancing
 
             #include  "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -37,12 +38,14 @@ Shader "Seino/Animation/gpu_skinning"
                 float2 uv : TEXCOORD0;
                 float2 uv1 : TEXCOORD1;
                 float2 uv2 : TEXCOORD2;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             float DecodeFloatRGBA( float4 enc )
@@ -86,6 +89,7 @@ Shader "Seino/Animation/gpu_skinning"
             
             v2f vert (appdata v)
             {
+                UNITY_SETUP_INSTANCE_ID(v);
                 v2f o;
 
                 int boneCount = _AnimTex_TexelSize.z / 12;
