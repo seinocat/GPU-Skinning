@@ -32,11 +32,84 @@ namespace Seino.GpuSkinning.Runtime
             var renderer = this.transform.GetComponentInChildren<SkinnedMeshRenderer>();
             foreach (var clip in clips)
             {
-                BakeBoneMatrixTex(renderer, clip);
+                BakeVertex(renderer, clip);
             }
         }
+        
+        private void BakeVertex(SkinnedMeshRenderer renderer, AnimationClip clip)
+        {
+            var frameCount = (int)(clip.frameRate * clip.length);
+            var width = renderer.sharedMesh.vertices.Length;
+            var height = frameCount;
+            Texture2D tex = new Texture2D(width, height, TexFormat, false);
+            tex.name = clip.name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Point;
+            Color[] colors = new Color[width * height];
+            
+            for (int i = 0; i < frameCount; i++)
+            {
+                clip.SampleAnimation(gameObject, i / clip.frameRate);
 
+                for (int j = 0; j < renderer.sharedMesh.vertices.Length; j++)
+                {
+                    var vertex = renderer.sharedMesh.vertices[j];
+                    colors[i * width + j] = new Color(vertex.x * 0.01f + 0.5f, vertex.y * 0.01f + 0.5f, vertex.z * 0.01f + 0.5f);
+                }
+            }
+            
+            tex.SetPixels(colors);
+            tex.Apply();
+            
+            AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}_vertex.asset");
+            AssetDatabase.SaveAssets();
+            
+            AssetDatabase.Refresh();
+        }
+        
         private void BakeBoneMatrixTex(SkinnedMeshRenderer renderer, AnimationClip clip)
+        {
+            var frameCount = (int)(clip.frameRate * clip.length);
+            var bones = renderer.bones;
+            var boneCount = bones.Length;
+            var bindposes = renderer.sharedMesh.bindposes;
+            
+            var width = boneCount * 3;
+            var height = frameCount;
+            Texture2D tex = new Texture2D(width, height, TexFormat, false);
+            tex.name = clip.name;
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Point;
+            Color[] colors = new Color[width * height];
+            
+            for (int i = 0; i < frameCount; i++)
+            {
+                clip.SampleAnimation(gameObject, i / clip.frameRate);
+
+                for (int j = 0; j < boneCount; j++)
+                {
+                    var matrix = transform.worldToLocalMatrix * bones[j].localToWorldMatrix * bindposes[j];
+                    colors[i * width + j * 3] = new Color(matrix.m00, matrix.m01, matrix.m02, matrix.m03);
+                    colors[i * width + j * 3 + 1] = new Color(matrix.m10, matrix.m11, matrix.m12, matrix.m13);
+                    colors[i * width + j * 3 + 2] = new Color(matrix.m20, matrix.m21, matrix.m22, matrix.m23);
+                }
+            }
+            
+            tex.SetPixels(colors);
+            tex.Apply();
+            
+            // var bytes = tex.EncodeToPNG();
+            //
+            // string path = Application.dataPath + $"/Generate/{tex.name}_no_encode.png";
+            // File.WriteAllBytes(path, bytes);
+
+            AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}_no_encode.asset");
+            AssetDatabase.SaveAssets();
+            
+            AssetDatabase.Refresh();
+        }
+
+        private void BakeBoneMatrixTex_Encode(SkinnedMeshRenderer renderer, AnimationClip clip)
         {
             var frameCount = (int)(clip.frameRate * clip.length);
             var bones = renderer.bones;

@@ -83,8 +83,7 @@ Shader "Seino/Animation/gpu_skinning_instancing"
                 float4 row1 = getMatrixRow(texIndex);
                 float4 row2 = getMatrixRow(texIndex + 4);
                 float4 row3 = getMatrixRow(texIndex + 8);
-                float4 row4 = float4(0,0,0,1);
-                return float4x4(row1, row2, row3, row4);
+                return float4x4(row1, row2, row3, float4(0,0,0,1));
             }
             
             v2f vert (appdata v)
