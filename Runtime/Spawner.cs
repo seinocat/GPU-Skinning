@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace GPU_Skinning.Runtime
 {
@@ -7,6 +8,7 @@ namespace GPU_Skinning.Runtime
         public GameObject Model;
         public Transform Root;
         
+        [Button("生成")]
         public void Generate(int row, int col)
         {
             for (int i = 0; i < row; i++)
