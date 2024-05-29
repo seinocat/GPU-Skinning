@@ -10,6 +10,15 @@ namespace Seino.GpuSkin.Runtime
         public TextureFormat TexFormat = TextureFormat.RGBAHalf;
         public int FrameRate = 30;
         public int TexWidth = 512;
+        public Animator m_Animator;
+        
+        [Button("检查")]
+        public void Sample(int frame = 0)
+        {
+            // var clip = m_Animator.runtimeAnimatorController.animationClips[0];
+            // m_Animator.Play(clip.name);
+            m_Clips[0].SampleAnimation(gameObject, frame / 30f);
+        }
 
         [Button("检查")]
         public void Check()
@@ -19,7 +28,7 @@ namespace Seino.GpuSkin.Runtime
             var bytes = tex.GetRawTextureData();
             Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/Generate/RobotKile.asset");
         }
-        
+
         public List<AnimationClip> m_Clips;
         public GameObject m_Fbx;
         
