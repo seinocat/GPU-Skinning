@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Sirenix.OdinInspector;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,11 +32,11 @@ namespace Seino.GpuSkin.Runtime
             var bindposes = renderer.sharedMesh.bindposes;
             var animCount = m_Clips.Count;
             
-            List<float4> aniHeader = new List<float4>();
-            List<float4> aniTexColor = new List<float4>();
+            List<Color> aniHeader = new List<Color>();
+            List<Color> aniTexColor = new List<Color>();
             
             // 头长度，骨骼数，动画数，帧率
-            aniHeader.Add(new float4(animCount + 1, boneCount, animCount, FrameRate));
+            aniHeader.Add(new Color(animCount + 1, boneCount, animCount, FrameRate));
             
             for (int animIndex = 0; animIndex < m_Clips.Count; animIndex++)
             {
@@ -52,68 +51,47 @@ namespace Seino.GpuSkin.Runtime
                     for (int boneIndex = 0; boneIndex < boneCount; boneIndex++)
                     {
                         var matrix = transform.worldToLocalMatrix * bones[boneIndex].localToWorldMatrix * bindposes[boneIndex];
-                        aniTexColor.Add(new float4(matrix.m00, matrix.m01, matrix.m02, matrix.m03)); 
-                        aniTexColor.Add(new float4(matrix.m10, matrix.m11, matrix.m12, matrix.m13)); 
-                        aniTexColor.Add(new float4(matrix.m20, matrix.m21, matrix.m22, matrix.m23));
+                        aniTexColor.Add(new Color(matrix.m00, matrix.m01, matrix.m02, matrix.m03)); 
+                        aniTexColor.Add(new Color(matrix.m10, matrix.m11, matrix.m12, matrix.m13)); 
+                        aniTexColor.Add(new Color(matrix.m20, matrix.m21, matrix.m22, matrix.m23));
                     }
                 }
 
                 var endIndex = aniTexColor.Count;
-                var clipLength = endIndex - startIndex;
-                
-                //动画片段的开始/结束索引, 长度, 是否循环
-                float4 headerInfo = new float4(startIndex + animCount + 1, endIndex + animCount + 1, clipLength, clip.isLooping ? 1 : 0);
+
+                //动画片段的开始/结束索引, 帧数, 是否循环
+                Color headerInfo = new Color(startIndex + animCount + 1, endIndex + animCount, frameCount, clip.isLooping ? 1 : 0);
                 aniHeader.Add(headerInfo);
             }
             
-            List<float4> aniTex = new List<float4>(aniHeader);
+            List<Color> aniTex = new List<Color>(aniHeader);
             aniTex.AddRange(aniTexColor);
+
+            int width = TexWidth;
+            int height = Mathf.CeilToInt(aniTex.Count / (float)width);
+
+            // 检查一下精度
+            if (width * height > ushort.MaxValue)
+                TexFormat = TextureFormat.RGBAFloat;
             
-            Texture2D tex = new Texture2D(TexWidth, Mathf.CeilToInt(aniTex.Count / (float)TexWidth), TexFormat, false);
+            Texture2D tex = new Texture2D(width, height, TexFormat, false);
             tex.name = $"GpuSkin_{m_Fbx.name}_AnimTex";
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
+            tex.anisoLevel = 0;
+
+            for (int i = 0; i < aniTex.Count; i++)
+            {
+                int u = i % width;
+                int v = i / width;
+                tex.SetPixel(u, v, aniTex[i]);
+            }
             
-            tex.SetPixelData(aniTex.ToArray(), 0);
-            // tex.SetPixel(0,0, new Color(2, 3, 1, 4));
             tex.Apply();
-
-            var path = Application.dataPath + $"/Generate/{tex.name}.exr";
-            byte[] bytes = ImageConversion.EncodeArrayToEXR(tex.GetRawTextureData(), tex.graphicsFormat, (uint)tex.width, (uint)tex.height);
-            System.IO.File.WriteAllBytes(path, bytes);
-
-            SetImportSettings($"Assets/Generate/{tex.name}.exr");
-        }
-        
-        private static void SetImportSettings(string filePath)
-        {
-            AssetDatabase.ImportAsset(filePath, ImportAssetOptions.Default);
-
-            TextureImporter importer = AssetImporter.GetAtPath(filePath) as TextureImporter;
-            if (importer != null)
-            {
-                // Change settings
-                importer.mipmapEnabled = false;
-                importer.sRGBTexture = false;
-                importer.npotScale = TextureImporterNPOTScale.None;
-                importer.filterMode = FilterMode.Point;
-                importer.wrapMode = TextureWrapMode.Repeat;
-                importer.isReadable = true;
-                importer.compressionQuality = 100;
-                var importSetting = importer.GetDefaultPlatformTextureSettings();
-                importSetting.format = TextureImporterFormat.RGBAHalf;
-                importSetting.textureCompression = TextureImporterCompression.Uncompressed;
-                importSetting.overridden = true;
-                
-                importer.SetPlatformTextureSettings(importSetting);
-
-                //Reimport
-                AssetDatabase.ImportAsset(filePath, ImportAssetOptions.ForceUpdate);
-            }
-            else
-            {
-                Debug.LogError("Failed to get Texture Importer at path: " + filePath);
-            }
+            
+            AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}.asset");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
         
         [Button("烘焙Mesh")]
@@ -137,6 +115,13 @@ namespace Seino.GpuSkin.Runtime
             skinMesh.name = $"GpuSkin_{m_Fbx.name}_Mesh";;
             AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
             AssetDatabase.SaveAssets();
+        }
+
+        [Button("一键烘焙", ButtonSizes.Large)]
+        public void Bake()
+        {
+            BakeBoneAnim();
+            BakeMesh();
         }
     }
 }
