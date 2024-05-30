@@ -54,7 +54,7 @@ Shader "Seino/Animation/gpu_skinning_instancing"
                 return dot(enc, kDecodeDot);
             }
 
-            float2 getUV(int texIndex)
+            float2 GetUV(int texIndex)
             {
                 int row = texIndex / _AnimTex_TexelSize.z ;
                 int col = texIndex - row * _AnimTex_TexelSize.z;
@@ -63,22 +63,22 @@ Shader "Seino/Animation/gpu_skinning_instancing"
             
             float4 getMatrixRow(int texIndex)
             {
-                float2 uv = getUV(texIndex);
+                float2 uv = GetUV(texIndex);
                 float r = DecodeFloatRGBA(tex2Dlod(_AnimTex, float4(float2(uv.x + 0.5 * _AnimTex_TexelSize.x, uv.y + 0.5 * _AnimTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(texIndex + 1);
+                uv = GetUV(texIndex + 1);
                 float g = DecodeFloatRGBA(tex2Dlod(_AnimTex, float4(float2(uv.x + 0.5 * _AnimTex_TexelSize.x, uv.y + 0.5 * _AnimTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(texIndex + 2);
+                uv = GetUV(texIndex + 2);
                 float b = DecodeFloatRGBA(tex2Dlod(_AnimTex, float4(float2(uv.x + 0.5 * _AnimTex_TexelSize.x, uv.y + 0.5 * _AnimTex_TexelSize.y), 0, 0)));
 
-                uv = getUV(texIndex + 3);
+                uv = GetUV(texIndex + 3);
                 float a = DecodeFloatRGBA(tex2Dlod(_AnimTex, float4(float2(uv.x + 0.5 * _AnimTex_TexelSize.x, uv.y + 0.5 * _AnimTex_TexelSize.y), 0, 0)));
 
                 return float4(r,g,b,a) * 100 - 50;
             }
 
-            float4x4 getMatrix(int texIndex)
+            float4x4 GetBoneMatrix(int texIndex)
             {
                 float4 row1 = getMatrixRow(texIndex);
                 float4 row2 = getMatrixRow(texIndex + 4);
@@ -99,11 +99,11 @@ Shader "Seino/Animation/gpu_skinning_instancing"
                 float boneWeight = v.uv1.y;
                 float texIndex = (boneIndex + frame * boneCount) * 12;
 
-                float4x4 mat1 = getMatrix(texIndex);
+                float4x4 mat1 = GetBoneMatrix(texIndex);
 
                 boneIndex = (int)v.uv2.x;
                 texIndex = (boneIndex + frame * boneCount) * 12;
-                float4x4 mat2 = getMatrix(texIndex);
+                float4x4 mat2 = GetBoneMatrix(texIndex);
 
                 float4 pos = mul(mat1, v.vertex) * boneWeight + mul(mat2, v.vertex) * (1 - boneWeight);
                 o.vertex = TransformObjectToHClip(pos);

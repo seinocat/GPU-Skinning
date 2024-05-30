@@ -4,8 +4,11 @@
     {
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimTex ("Anim Tex", 2D) = "white"{}
-        _CurAnimIndex ("CurAnim Index", float) = 1
+        _Speed ("Speed", float)  = 1
+        _DurationTime("DurationTime", float) = 0.25
+        _BlendParam ("_BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引, 当前动画播放时间，上一动画索引，上一动画播放时间
     }
+    
     SubShader
     {
         Pass
@@ -23,7 +26,9 @@
             CBUFFER_START(UnityPerMaterial)
             float4 _MainTex_TexelSize;
             float4 _AnimTex_TexelSize;
-            float _CurAnimIndex;
+            float4 _BlendParam;
+            float _Speed;
+            float _DurationTime;
             CBUFFER_END
 
             TEXTURE2D(_MainTex);
@@ -49,7 +54,7 @@
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            float2 getUV(int index)
+            float2 GetUV(int index)
             {
                 int row = index / _AnimTex_TexelSize.z;
                 int col = fmod(index, _AnimTex_TexelSize.z);
@@ -58,45 +63,65 @@
                 return float2(u, v);
             }
 
-            float4x4 getMatrix(int index)
+            float4x4 GetBoneMatrix(int index)
             {
-                float2 uv = getUV(index);
+                float2 uv = GetUV(index);
                 float4 row0 = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, uv, 0);
 
-                uv = getUV(index + 1);
+                uv = GetUV(index + 1);
                 float4 row1 = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, uv, 0);
 
-                uv = getUV(index + 2);
+                uv = GetUV(index + 2);
                 float4 row2 = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, uv, 0);
                 
                 return float4x4(row0, row1, row2, float4(0, 0, 0, 1));
+            }
+
+            float4 GetBonePos(int index, int frame, int boneCount, appdata v)
+            {
+                int boneIndex = v.uv1.x;
+                float boneWeight = v.uv1.y;
+                int texIndex = index + 3 * (boneCount * frame + boneIndex);
+                float4x4 boneMatrix1 = GetBoneMatrix(texIndex);
+                
+                boneIndex = v.uv2.x;
+                texIndex = index + 3 * (boneCount * frame + boneIndex);
+                float4x4 boneMatrix2 = GetBoneMatrix(texIndex);
+
+                float4 positionOS = mul(boneMatrix1, v.vertex) * boneWeight + mul(boneMatrix2, v.vertex) * (1 - boneWeight);
+                return positionOS;
             }
             
             v2f vert (appdata v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
                 v2f o;
+                int curAnimIndex = _BlendParam.x;
+                float curAnimPlayTime = _BlendParam.y;
+                int lastAnimIndex = _BlendParam.z;
+                float lastAnimPlayTime = _BlendParam.w;
                 
                 float4 headInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * 0.5, _AnimTex_TexelSize.y * 0.5), 0);
-                float4 curAnimInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * (0.5 + _CurAnimIndex), _AnimTex_TexelSize.y * 0.5), 0);
-                int frameRate = headInfo.w;
-                int frameCount = curAnimInfo.z;
-                int boneCount = headInfo.y;
-                
-                int frame = fmod(_Time.y * frameRate, frameCount);
-                
-                int boneIndex = v.uv1.x;
-                float boneWeight = v.uv1.y;
-                int texIndex = curAnimInfo.x + 3 * (boneCount * frame + boneIndex);
-                float4x4 boneMatrix1 = getMatrix(texIndex);
-                
-                boneIndex = v.uv2.x;
-                texIndex = curAnimInfo.x + 3 * (boneCount * frame + boneIndex);
-                float4x4 boneMatrix2 = getMatrix(texIndex);
+                float4 curAnimInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * (0.5 + curAnimIndex), _AnimTex_TexelSize.y * 0.5), 0);
+                float4 lastAnimInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * (0.5 + lastAnimIndex), _AnimTex_TexelSize.y * 0.5), 0);
 
-                float4 positionOS = mul(boneMatrix1, v.vertex) * boneWeight + mul(boneMatrix2, v.vertex) * (1 - boneWeight);
+                int frameRate = headInfo.w;
+                int boneCount = headInfo.y;
+                int curFrameCount = curAnimInfo.y;
+                int lastFrameCount = lastAnimInfo.y;
                 
-                o.vertex = TransformObjectToHClip(positionOS);
+                int curAnimFrame = fmod(max(_Time.y - curAnimPlayTime, 0) * frameRate * _Speed, curFrameCount);
+                int lastAnimFrame = fmod(max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed, lastFrameCount);
+                
+                float4 curAnimPos = GetBonePos(curAnimInfo.x, curAnimFrame, boneCount, v);
+                float4 lastAnimPos = GetBonePos(lastAnimInfo.x, lastAnimFrame, boneCount, v);
+                
+                float weight = step(1, curAnimInfo.z);
+                float t = sin(saturate((_Time.y - curAnimPlayTime) / _DurationTime) * (PI / 2.0));
+                float4 blendPos = curAnimPos * t + lastAnimPos * (1 - t);
+                float4 finalPos = curAnimPos * (1 - weight) + blendPos * weight;
+                
+                o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }

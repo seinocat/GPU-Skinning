@@ -49,7 +49,7 @@ Shader "Seino/Animation/gpu_skinning_no_encode"
             };
             
 
-            float2 getUV(int texIndex)
+            float2 GetUV(int texIndex)
             {
                 int row = texIndex / _AnimTex_TexelSize.z ;
                 int col = texIndex - row * _AnimTex_TexelSize.z;
@@ -58,12 +58,12 @@ Shader "Seino/Animation/gpu_skinning_no_encode"
             
             float4 getMatrixRow(int texIndex)
             {
-                float2 uv = getUV(texIndex);
+                float2 uv = GetUV(texIndex);
                 float4 row = tex2Dlod(_AnimTex, float4(float2(uv.x + 0.5 * _AnimTex_TexelSize.x, uv.y + 0.5 * _AnimTex_TexelSize.y), 0, 0));
                 return row;
             }
 
-            float4x4 getMatrix(int texIndex)
+            float4x4 GetBoneMatrix(int texIndex)
             {
                 float4 row1 = getMatrixRow(texIndex);
                 float4 row2 = getMatrixRow(texIndex + 1);
@@ -85,11 +85,11 @@ Shader "Seino/Animation/gpu_skinning_no_encode"
                 float boneWeight = v.uv1.y;
                 float texIndex = (boneIndex + frame * boneCount) * 3;
 
-                float4x4 mat1 = getMatrix(texIndex);
+                float4x4 mat1 = GetBoneMatrix(texIndex);
 
                 boneIndex = (int)v.uv2.x;
                 texIndex = (boneIndex + frame * boneCount) * 3;
-                float4x4 mat2 = getMatrix(texIndex);
+                float4x4 mat2 = GetBoneMatrix(texIndex);
 
                 float4 pos = mul(mat1, v.vertex) * boneWeight + mul(mat2, v.vertex) * (1 - boneWeight);
                 o.vertex = TransformObjectToHClip(pos);

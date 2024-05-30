@@ -7,11 +7,10 @@ namespace Seino.GpuSkin.Runtime
 {
     public class GpuSkinBaker : MonoBehaviour
     {
-        public TextureFormat TexFormat = TextureFormat.RGBAHalf;
+        public TextureFormat TexFormat = TextureFormat.RGBAFloat;
         public int FrameRate = 30;
         public int TexWidth = 512;
-        public Animator m_Animator;
-        
+
         [Button("检查")]
         public void Sample(int frame = 0)
         {
@@ -23,19 +22,19 @@ namespace Seino.GpuSkin.Runtime
         [Button("检查")]
         public void Check()
         {
-            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Generate/GpuSkin_Baker_AnimTex.exr");
+            Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/AGpu/GpuSkin_fbx_monster_haixiren_zhong_futou_01_SN_AnimTex.asset");
             var colors = tex.GetPixels();
             var bytes = tex.GetRawTextureData();
             Mesh mesh = AssetDatabase.LoadAssetAtPath<Mesh>("Assets/Generate/RobotKile.asset");
         }
 
         public List<AnimationClip> m_Clips;
-        public GameObject m_Fbx;
+
         
         [Button("烘焙骨骼动画")]
         public void BakeBoneAnim()
         {
-            var renderer = m_Fbx.transform.GetComponentInChildren<SkinnedMeshRenderer>();
+            var renderer = transform.GetComponentInChildren<SkinnedMeshRenderer>();
             var bones = renderer.bones;
             var boneCount = bones.Length;
             var bindposes = renderer.sharedMesh.bindposes;
@@ -46,12 +45,13 @@ namespace Seino.GpuSkin.Runtime
             
             // 头长度，骨骼数，动画数，帧率
             aniHeader.Add(new Color(animCount + 1, boneCount, animCount, FrameRate));
+            float offset = animCount + 1;
             
             for (int animIndex = 0; animIndex < m_Clips.Count; animIndex++)
             {
                 var clip = m_Clips[animIndex];
                 var frameCount = (int)(FrameRate * clip.length);
-                var startIndex = aniTexColor.Count;
+                float startIndex = aniTexColor.Count + offset;
 
                 for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
                 {
@@ -59,17 +59,15 @@ namespace Seino.GpuSkin.Runtime
                     
                     for (int boneIndex = 0; boneIndex < boneCount; boneIndex++)
                     {
-                        var matrix = transform.worldToLocalMatrix * bones[boneIndex].localToWorldMatrix * bindposes[boneIndex];
+                        var matrix = bones[boneIndex].localToWorldMatrix * bindposes[boneIndex];
                         aniTexColor.Add(new Color(matrix.m00, matrix.m01, matrix.m02, matrix.m03)); 
                         aniTexColor.Add(new Color(matrix.m10, matrix.m11, matrix.m12, matrix.m13)); 
                         aniTexColor.Add(new Color(matrix.m20, matrix.m21, matrix.m22, matrix.m23));
                     }
                 }
-
-                var endIndex = aniTexColor.Count;
-
-                //动画片段的开始/结束索引, 帧数, 是否循环
-                Color headerInfo = new Color(startIndex + animCount + 1, endIndex + animCount, frameCount, clip.isLooping ? 1 : 0);
+                
+                //开始索引, 帧数, 是否需要融合, 是否循环
+                Color headerInfo = new Color(startIndex, frameCount, 0f, clip.isLooping ? 1 : 0);
                 aniHeader.Add(headerInfo);
             }
             
@@ -78,13 +76,9 @@ namespace Seino.GpuSkin.Runtime
 
             int width = TexWidth;
             int height = Mathf.CeilToInt(aniTex.Count / (float)width);
-
-            // 检查一下精度
-            if (width * height > ushort.MaxValue)
-                TexFormat = TextureFormat.RGBAFloat;
             
             Texture2D tex = new Texture2D(width, height, TexFormat, false);
-            tex.name = $"GpuSkin_{m_Fbx.name}_AnimTex";
+            tex.name = $"GpuSkin_{gameObject.name}_AnimTex";
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
             tex.anisoLevel = 0;
@@ -98,7 +92,7 @@ namespace Seino.GpuSkin.Runtime
             
             tex.Apply();
             
-            AssetDatabase.CreateAsset(tex, $"Assets/Generate/{tex.name}.asset");
+            AssetDatabase.CreateAsset(tex, $"Assets/AGpu/{tex.name}.asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
@@ -106,7 +100,7 @@ namespace Seino.GpuSkin.Runtime
         [Button("烘焙Mesh")]
         public void BakeMesh()
         {
-            var mesh = m_Fbx.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
+            var mesh = gameObject.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
             var skinMesh = Instantiate(mesh);
             var boneWeights = mesh.boneWeights;
             Vector2[] uv2 = new Vector2[boneWeights.Length] ;
@@ -121,8 +115,8 @@ namespace Seino.GpuSkin.Runtime
             
             skinMesh.SetUVs(1, uv2);
             skinMesh.SetUVs(2, uv3);
-            skinMesh.name = $"GpuSkin_{m_Fbx.name}_Mesh";;
-            AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
+            skinMesh.name = $"GpuSkin_{gameObject.name}_Mesh";;
+            AssetDatabase.CreateAsset(skinMesh, $"Assets/AGpu/{skinMesh.name}.asset");
             AssetDatabase.SaveAssets();
         }
 
