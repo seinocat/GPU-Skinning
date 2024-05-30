@@ -1,2 +1,2 @@
 # GPU-Skinning
-适用于Unity的GPU骨骼蒙皮动画，兼容GPU Instancing
+基于Unity的GpuSkin插件，支持融合过渡，速度控制
