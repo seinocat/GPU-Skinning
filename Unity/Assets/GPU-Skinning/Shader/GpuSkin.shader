@@ -1,4 +1,4 @@
-﻿Shader "Seino/Animation/gpuskin"
+﻿Shader "Seino/Animation/GpuSkin"
 {
     Properties
     {
