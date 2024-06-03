@@ -1,17 +1,23 @@
 ﻿using System.Collections.Generic;
+using Seino.GpuSkin.Runtime;
 using Sirenix.OdinInspector;
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Seino.GpuSkin.Runtime
+namespace GPU_Skinning.Editor
 {
-    [HideMonoScript]
-    public class GpuSkinBaker : MonoBehaviour
+    public class GpuSkinBaker : OdinEditorWindow
     {
-        // 精度问题，不开放配置
-        private TextureFormat TexFormat = TextureFormat.RGBAFloat;
+        [MenuItem("Tools/GpuSkin/GpuSkinBaker")]
+        private static void ShowWindow()
+        {
+            var window = GetWindow<GpuSkinBaker>();
+            window.titleContent = new GUIContent("GpuSKinBaker");
+            window.Show();
+        }
         
-        [Title("参数")]
+        [Title("基本参数")]
         [LabelText("帧率")]
         public int FrameRate = 30;
         
@@ -20,11 +26,47 @@ namespace Seino.GpuSkin.Runtime
 
         [LabelText("Shader")]
         public Shader GpuSkinShader;
+
+        [Title("目标物体")]
+        [LabelText("GameObject")]
+        public GameObject Target;
         
-        [LabelText("动画切片"), TableList]
+        [Title("动画信息")]
+        [LabelText("切片列表"), TableList]
         public List<GpuAnimBakeData> AnimDatas;
+
+        public Transform transform;
+
+        public GameObject gameObject;
+        
+        // 精度问题，不开放配置
+        private TextureFormat TexFormat = TextureFormat.RGBAFloat;
         
         [Title("分步烘焙")]
+        [Button("烘焙Mesh")]
+        public void BakeMesh()
+        {
+            var mesh = gameObject.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
+            var skinMesh = Instantiate(mesh);
+            var boneWeights = mesh.boneWeights;
+            Vector2[] uv2 = new Vector2[boneWeights.Length] ;
+            Vector2[] uv3 = new Vector2[boneWeights.Length] ;
+            
+            for (int i = 0; i < boneWeights.Length; i++)
+            {
+                var boneWeight = boneWeights[i];
+                uv2[i] = new Vector2(boneWeight.boneIndex0, boneWeight.weight0);
+                uv3[i] = new Vector2(boneWeight.boneIndex1, boneWeight.weight1);
+            }
+            
+            skinMesh.SetUVs(1, uv2);
+            skinMesh.SetUVs(2, uv3);
+            skinMesh.name = $"GpuSkin_{gameObject.name}_Mesh";;
+            AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
+            AssetDatabase.SaveAssets();
+        }
+        
+
         [Button("烘焙骨骼动画")]
         public void BakeBoneAnim()
         {
@@ -91,30 +133,7 @@ namespace Seino.GpuSkin.Runtime
             AssetDatabase.Refresh();
         }
         
-        [Button("烘焙Mesh")]
-        public void BakeMesh()
-        {
-            var mesh = gameObject.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
-            var skinMesh = Instantiate(mesh);
-            var boneWeights = mesh.boneWeights;
-            Vector2[] uv2 = new Vector2[boneWeights.Length] ;
-            Vector2[] uv3 = new Vector2[boneWeights.Length] ;
-            
-            for (int i = 0; i < boneWeights.Length; i++)
-            {
-                var boneWeight = boneWeights[i];
-                uv2[i] = new Vector2(boneWeight.boneIndex0, boneWeight.weight0);
-                uv3[i] = new Vector2(boneWeight.boneIndex1, boneWeight.weight1);
-            }
-            
-            skinMesh.SetUVs(1, uv2);
-            skinMesh.SetUVs(2, uv3);
-            skinMesh.name = $"GpuSkin_{gameObject.name}_Mesh";;
-            AssetDatabase.CreateAsset(skinMesh, $"Assets/Generate/{skinMesh.name}.asset");
-            AssetDatabase.SaveAssets();
-        }
-
-        [Title("快速")]
+        [Title("快速烘焙")]
         [Button("一键烘焙", ButtonSizes.Large)]
         public void Bake()
         {
@@ -123,4 +142,3 @@ namespace Seino.GpuSkin.Runtime
         }
     }
 }
-

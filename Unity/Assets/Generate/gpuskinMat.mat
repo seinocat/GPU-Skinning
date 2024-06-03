@@ -119,6 +119,7 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _Duration: 103.1075
+    - _DurationTime: 0.25
     - _EnvironmentReflections: 1
     - _FrameRate: 30
     - _GlossMapScale: 0
@@ -143,7 +144,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BlendParam: {r: 1, g: 50.240063, b: 3, a: 44.90928}
+    - _BlendParam: {r: 1, g: 39.421463, b: 2, a: 37.086525}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}

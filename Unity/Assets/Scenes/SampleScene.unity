@@ -3886,6 +3886,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Mesh: {fileID: 3302351458807530351, guid: 73ffbc06802a247cfb1b26f4ee67eba8, type: 3}
   Material: {fileID: 2100000, guid: 03ea2d256bf144dfa907b17f13aa4949, type: 2}
+  m_MaxBatchCount: 1023
+  m_CurCount: 0
+  m_Enable: 0
 --- !u!1 &605124780
 GameObject:
   m_ObjectHideFlags: 0
@@ -4644,6 +4647,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 807125815}
   m_CullTransparentMesh: 1
+--- !u!1 &826221708
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 826221710}
+  - component: {fileID: 826221709}
+  m_Layer: 0
+  m_Name: Baker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &826221709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826221708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FrameRate: 30
+  TexWidth: 512
+  GpuSkinShader: {fileID: 0}
+  AnimDatas:
+  - Clip: {fileID: 0}
+    Transition: 0
+    FrameEvents:
+    - Frame: 26
+      EventName: 
+    - Frame: 0
+      EventName: 
+  - Clip: {fileID: 0}
+    Transition: 0
+    FrameEvents: []
+  - Clip: {fileID: 0}
+    Transition: 0
+    FrameEvents: []
+--- !u!4 &826221710
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826221708}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.16218758, y: 1.0277905, z: -0.2196573}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &826608658
 GameObject:
   m_ObjectHideFlags: 0
@@ -6680,8 +6744,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8644d69fce4448889230a633118592d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Model: {fileID: 0}
-  Root: {fileID: 605124781}
 --- !u!4 &994876063
 Transform:
   m_ObjectHideFlags: 0
@@ -7213,8 +7275,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8644d69fce4448889230a633118592d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Model: {fileID: 1569953956}
-  Root: {fileID: 605124781}
 --- !u!4 &1601860138
 Transform:
   m_ObjectHideFlags: 0
@@ -7347,17 +7407,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebd5d0a5d3b14a868db8f82d616e02bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Options: {fileID: 826608659}
-  m_ShowBtn: {fileID: 104605666}
-  m_OkBtn: {fileID: 945564603}
-  m_HideBtn: {fileID: 2078042305}
-  m_InputField: {fileID: 1775120085}
-  m_Dropdown: {fileID: 514624296}
-  m_Slider: {fileID: 2061209387}
-  GameObjectSpw: {fileID: 1601860137}
-  GpuSkinningSpw: {fileID: 994876062}
-  GpuSkinInstancing: {fileID: 596980556}
-  Root: {fileID: 605124781}
 --- !u!1 &1619807614
 GameObject:
   m_ObjectHideFlags: 0
@@ -9993,15 +10042,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TexFormat: 17
   FrameRate: 30
   TexWidth: 512
-  m_Animator: {fileID: 0}
-  m_Clips:
-  - {fileID: 1657602633327794031, guid: 8269a9f8cf495034c817722ac21f309f, type: 3}
-  - {fileID: 6564411413370888346, guid: 16114d403eabb53438de032c6f0d1deb, type: 3}
-  - {fileID: 7478122292733868173, guid: 98f277b0c8055e143b2fcf058d3c27dc, type: 3}
-  m_Fbx: {fileID: 2092279846}
+  GpuSkinShader: {fileID: 0}
+  AnimDatas: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -10020,3 +10064,4 @@ SceneRoots:
   - {fileID: 605124781}
   - {fileID: 769676993}
   - {fileID: 1747528481}
+  - {fileID: 826221710}
