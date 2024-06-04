@@ -8,27 +8,14 @@ namespace Seino.GpuSkin.Runtime
     [Serializable]
     public class GpuAnimBakeData
     {
-        [LabelText("动画切片")]
+        [LabelText("切片", SdfIconType.Activity)]
         public AnimationClip Clip;
 
-        [LabelText("过渡时间")] 
+        [LabelText("过渡时间", SdfIconType.Clock), Tooltip("0表示直接切换")] 
         public float Transition = 0.25f;
 
-        [LabelText("帧事件")] 
+        [LabelText("事件", SdfIconType.Alarm)] 
         public List<GpuAnimFrameEvent> FrameEvents;
-
-        [Button("读取Clip信息")]
-        public void ReadClip()
-        {
-            for (int i = 0; i < Clip.events.Length; i++)
-            {
-                var clipEvent = Clip.events[i];
-                GpuAnimFrameEvent frameEvent = new GpuAnimFrameEvent();
-                frameEvent.Frame = Mathf.FloorToInt(Clip.frameRate * clipEvent.time);
-                frameEvent.EventName = clipEvent.stringParameter;
-                FrameEvents.Add(frameEvent);
-            }
-        }
     }
 
     [Serializable]
