@@ -53,6 +53,10 @@ namespace GPU_Skinning.Editor
         public GameObject BakeTarget;
         
         [PropertyOrder(51)]
+        [LabelText("Mesh", SdfIconType.Grid3x3GapFill)]
+        public Mesh BakeMesh;
+        
+        [PropertyOrder(51)]
         [LabelText("Material", SdfIconType.CircleFill)]
         public Material BakeMaterial;
         
@@ -70,23 +74,29 @@ namespace GPU_Skinning.Editor
 
         [PropertyOrder(100)] 
         [Title("动画信息")]
-        [LabelText("动画路径", SdfIconType.FolderFill), FolderPath, InlineButton("GetAnimClips", "获取")]
+        [LabelText("动画路径", SdfIconType.FolderFill), FolderPath, 
+         InlineButton("GetAnimClips", "搜索"), InlineButton("ReadAnimClipEvents", "读取事件")]
         public string AnimFolderPath;
         
-        [PropertyOrder(101)]
-        [LabelText("切片列表", SdfIconType.List), TableList]
+        [PropertyOrder(102)]
+        [LabelText("列表"), TableList]
         public List<GpuAnimData> AnimDatas;
         
         #region 烘焙方法
-
         
         private static readonly int SHADER_PROPERTY_ANIMTEX = Shader.PropertyToID("_AnimTex");
 
-        [Title("分步烘焙")]
+        [Title("分步执行")]
         [PropertyOrder(200)]
         [Button("创建材质")]
         public void CreateMaterial()
         {
+            if (GpuSkinShader == null)
+            {
+                EditorUtility.DisplayDialog("提示", "shader不能为空!", "ok");
+                return;
+            }
+            
             BakeMaterial = new Material(GpuSkinShader);
             BakeMaterial.SetTexture(MainTexProperty, MainTex);
             CreateAssets(BakeMaterial, $"GpuSkin_{BakeTarget.name}_Mat.mat");
@@ -94,7 +104,7 @@ namespace GPU_Skinning.Editor
         
         [PropertyOrder(205)]
         [Button("创建Mesh")]
-        public void BakeMesh()
+        public void CreateMesh()
         {
             var mesh = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
             var skinMesh = Instantiate(mesh);
@@ -111,13 +121,15 @@ namespace GPU_Skinning.Editor
             
             skinMesh.SetUVs(1, uv2);
             skinMesh.SetUVs(2, uv3);
-            skinMesh.name = $"GpuSkin_{BakeTarget.name}_Mesh";;
+            skinMesh.name = $"GpuSkin_{BakeTarget.name}_Mesh";
+
+            BakeMesh = skinMesh;
             
             CreateAssets(skinMesh, $"{skinMesh.name}.asset");
         }
         
         [PropertyOrder(206)]
-        [Button("烘焙动画贴图")]
+        [Button("烘焙贴图")]
         public void BakeBoneAnim()
         {
             var renderer = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>();
@@ -201,12 +213,14 @@ namespace GPU_Skinning.Editor
         
         
         [PropertyOrder(250)]
-        [Title("快速烘焙")]
-        [Button("一键烘焙", ButtonSizes.Large)]
+        [Title("快速操作")]
+        [Button("全部执行", ButtonSizes.Large)]
         public void Bake()
         {
+            CreateMaterial();
+            CreateMesh();
             BakeBoneAnim();
-            BakeMesh();
+            SaveConfig();
         }
         
         
@@ -215,39 +229,23 @@ namespace GPU_Skinning.Editor
 
         #region 辅助方法
         
-        [PropertyOrder(101)]
-        [OnInspectorGUI]
-        private void DrawAnimFrameEvents()
+        private void ReadAnimClipEvents()
         {
-            // 创建自定义的GUI样式
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
-            buttonStyle.fixedWidth = 70;
-            
-            EditorGUILayout.Space(5);
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
+            if (AnimDatas == null)
+                return;
 
-            // 绘制按钮并应用样式
-            if (GUILayout.Button("读取帧事件", buttonStyle))
+            for (int i = 0; i < AnimDatas.Count; i++)
             {
-                if (AnimDatas == null)
-                    return;
-
-                for (int i = 0; i < AnimDatas.Count; i++)
+                var animData = AnimDatas[i];
+                for (int j = 0; j < animData.Clip.events.Length; j++)
                 {
-                    var animData = AnimDatas[i];
-                    for (int j = 0; j < animData.Clip.events.Length; j++)
-                    {
-                        var clipEvent = animData.Clip.events[j];
-                        GpuAnimFrameEvent frameEvent = new GpuAnimFrameEvent();
-                        frameEvent.Frame = Mathf.FloorToInt(animData.Clip.frameRate * clipEvent.time);
-                        frameEvent.EventName = clipEvent.functionName;
-                        animData.FrameEvents.Add(frameEvent);
-                    } 
-                }
+                    var clipEvent = animData.Clip.events[j];
+                    GpuAnimFrameEvent frameEvent = new GpuAnimFrameEvent();
+                    frameEvent.Frame = Mathf.FloorToInt(animData.Clip.frameRate * clipEvent.time);
+                    frameEvent.EventName = clipEvent.functionName;
+                    animData.FrameEvents.Add(frameEvent);
+                } 
             }
-            
-            EditorGUILayout.EndHorizontal();
         }
         
         private void LoadConfig()
@@ -257,10 +255,13 @@ namespace GPU_Skinning.Editor
 
             FrameRate = Config.FrameRate;
             BakeTarget = Config.BakeTarget;
+            BakeMesh = Config.BakeMesh;
             BakeMaterial = Config.BakeMaterial;
             GpuSkinShader = Config.GpuSkinShader;
             MainTexProperty = Config.MainTexProperty;
             MainTex = Config.MainTex;
+            AnimDatas = Config.AnimDatas;
+            AssetPathChange();
         }
 
         private void SaveConfig()
@@ -270,6 +271,7 @@ namespace GPU_Skinning.Editor
             
             Config.FrameRate = FrameRate;
             Config.BakeTarget = BakeTarget;
+            Config.BakeMesh = BakeMesh;
             Config.BakeMaterial = BakeMaterial;
             Config.GpuSkinShader = GpuSkinShader;
             Config.MainTexProperty = MainTexProperty;
@@ -309,6 +311,9 @@ namespace GPU_Skinning.Editor
 
         internal void FindAnimClipInternal(string suffix, ref Dictionary<string, AnimationClip> animClips)
         {
+            if (string.IsNullOrEmpty(AnimFolderPath))
+                return;
+            
             string[] animFiles = Directory.GetFiles(AnimFolderPath, suffix, SearchOption.AllDirectories);
             foreach (string animFile in animFiles)
             {
@@ -339,7 +344,7 @@ namespace GPU_Skinning.Editor
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            
+
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

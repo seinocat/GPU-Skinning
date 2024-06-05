@@ -4443,71 +4443,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &769676993
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.84533954
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.4164793
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_Name
-      value: Walking
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5866666021909216657, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
-      propertyPath: m_Controller
-      value: 
-      objectReference: {fileID: 9100000, guid: 8d68bc5b695f72548824d3bf9bd433fd, type: 2}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: bbd66883e8de62a4089852cc3a5d708d, type: 3}
 --- !u!1 &807125815
 GameObject:
   m_ObjectHideFlags: 0
@@ -4671,23 +4606,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TexFormat: 20
   FrameRate: 30
   TexWidth: 512
   GpuSkinShader: {fileID: 0}
   AnimDatas:
-  - Clip: {fileID: 0}
-    Transition: 0
-    FrameEvents:
+  - {Clip: {fileID: 0}, Transition: 0, FrameEvents:
     - Frame: 26
       EventName: 
     - Frame: 0
       EventName: 
-  - Clip: {fileID: 0}
-    Transition: 0
-    FrameEvents: []
-  - Clip: {fileID: 0}
-    Transition: 0
-    FrameEvents: []
+}
+  - {Clip: {fileID: 0}, Transition: 0, FrameEvents: []
+}
+  - {Clip: {fileID: 0}, Transition: 0, FrameEvents: []
+}
 --- !u!4 &826221710
 Transform:
   m_ObjectHideFlags: 0
@@ -7241,6 +7174,7 @@ MonoBehaviour:
   Renderer: {fileID: 846396364}
   GpuSkinMaterial: {fileID: 0}
   TargetAnima: 1
+  Layer: 0
 --- !u!1 &1601860136
 GameObject:
   m_ObjectHideFlags: 0
@@ -10037,6 +9971,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TexFormat: 20
   FrameRate: 30
   TexWidth: 512
   GpuSkinShader: {fileID: 0}
@@ -10057,6 +9992,5 @@ SceneRoots:
   - {fileID: 1615022691}
   - {fileID: 2039263600}
   - {fileID: 605124781}
-  - {fileID: 769676993}
   - {fileID: 1747528481}
   - {fileID: 826221710}

@@ -14,6 +14,9 @@ namespace Seino.GpuSkin.Runtime
         [LabelText("烘焙模型")]
         public GameObject BakeTarget;
         
+        [LabelText("烘焙模型")]
+        public Mesh BakeMesh;
+        
         [LabelText("Material")]
         public Material BakeMaterial;
         

@@ -5,8 +5,7 @@
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimTex ("Anim Tex", 2D) = "white"{}
         _Speed ("Speed", float)  = 1
-        _DurationTime("DurationTime", float) = 0.25
-        _BlendParam ("_BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引, 当前动画播放时间，上一动画索引，上一动画播放时间
+        _BlendParam ("_BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引&层级, 当前动画播放时间，上一动画索引&层级，上一动画播放时间
     }
     
     SubShader
@@ -28,7 +27,6 @@
             float4 _AnimTex_TexelSize;
             float4 _BlendParam;
             float _Speed;
-            float _DurationTime;
             CBUFFER_END
 
             TEXTURE2D(_MainTex);
@@ -91,14 +89,24 @@
                 float4 positionOS = mul(boneMatrix1, v.vertex) * boneWeight + mul(boneMatrix2, v.vertex) * (1 - boneWeight);
                 return positionOS;
             }
+
+            int GetIndex(int combine)
+            {
+                return combine & 0xff;
+            }
+
+            int GetLayer(int combine)
+            {
+                return (combine >> 8) & 0xff;
+            }
             
             v2f vert (appdata v)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
                 v2f o;
-                int curAnimIndex = _BlendParam.x;
+                int curAnimIndex = GetIndex(_BlendParam.x);
                 float curAnimPlayTime = _BlendParam.y;
-                int lastAnimIndex = _BlendParam.z;
+                int lastAnimIndex = GetIndex(_BlendParam.z);
                 float lastAnimPlayTime = _BlendParam.w;
                 
                 float4 headInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * 0.5, _AnimTex_TexelSize.y * 0.5), 0);
@@ -120,9 +128,9 @@
 
                 //上一动画计算同理
                 isloop = lastAnimInfo.w;
-                totalFrame = max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed; //已播放的总帧数
-                loopFrame = fmod(totalFrame, lastFrameCount); //循环帧数
-                playEnd = step(lastFrameCount, totalFrame); //判断一下是否播放完
+                totalFrame = max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed;
+                loopFrame = fmod(totalFrame, lastFrameCount); 
+                playEnd = step(lastFrameCount, totalFrame); 
                 int lastAnimFrame = lerp(lerp(loopFrame, lastFrameCount - 1, playEnd), loopFrame, isloop);
                 
                 float4 curAnimPos = GetBonePos(curAnimInfo.x, curAnimFrame, boneCount, v);

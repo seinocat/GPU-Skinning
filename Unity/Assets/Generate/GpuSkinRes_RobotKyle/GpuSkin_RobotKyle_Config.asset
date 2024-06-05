@@ -13,15 +13,19 @@ MonoBehaviour:
   m_Name: GpuSkin_RobotKyle_Config
   m_EditorClassIdentifier: 
   FrameRate: 30
-  BakeTarget: {fileID: 0}
+  BakeTarget: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
+  BakeMesh: {fileID: 4300000, guid: d53e774bc1f90134d954c9143bf34a83, type: 2}
   BakeMaterial: {fileID: 2100000, guid: 179758ba9e9ed57488fafcba3bc00d22, type: 2}
   GpuSkinShader: {fileID: 4800000, guid: 04e94a483acb43da96d8bf59130de0a7, type: 3}
   MainTexProperty: _MainTex
   MainTex: {fileID: 2800000, guid: 4cd7cfbb985ec4518bfc6c73c4ee1433, type: 3}
   AnimDatas:
+  - Clip: {fileID: -3100369314251171874, guid: 12e52e465ed793a4d801955e9f964a82, type: 3}
+    Transition: 0.25
+    FrameEvents: []
   - Clip: {fileID: 1657602633327794031, guid: 8269a9f8cf495034c817722ac21f309f, type: 3}
     Transition: 0.25
     FrameEvents: []
-  - Clip: {fileID: 7400000, guid: 1d91842419a516e47b167c802748b987, type: 2}
+  - Clip: {fileID: 6564411413370888346, guid: 16114d403eabb53438de032c6f0d1deb, type: 3}
     Transition: 0.25
     FrameEvents: []

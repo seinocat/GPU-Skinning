@@ -36,5 +36,5 @@ Material:
     - _DurationTime: 0.25
     - _Speed: 1
     m_Colors:
-    - _BlendParam: {r: 1, g: 22.420977, b: 4, a: 17.638178}
+    - _BlendParam: {r: 3843, g: 83.148994, b: 769, a: 65.423134}
   m_BuildTextureStacks: []
