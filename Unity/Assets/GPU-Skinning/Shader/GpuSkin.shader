@@ -107,19 +107,33 @@
 
                 int frameRate = headInfo.w;
                 int boneCount = headInfo.y;
-                int curFrameCount = curAnimInfo.y;
-                int lastFrameCount = lastAnimInfo.y;
-                
-                int curAnimFrame = fmod(max(_Time.y - curAnimPlayTime, 0) * frameRate * _Speed, curFrameCount);
-                int lastAnimFrame = fmod(max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed, lastFrameCount);
+                int curFrameCount = curAnimInfo.y; //当前动画帧数
+                int lastFrameCount = lastAnimInfo.y;//上一动画帧数
+                float duration = curAnimInfo.z;
+
+                //计算当前动画所处帧数
+                int isloop = curAnimInfo.w;
+                int totalFrame = max(_Time.y - curAnimPlayTime, 0) * frameRate * _Speed; //已播放的总帧数
+                int loopFrame = fmod(totalFrame, curFrameCount); //循环帧数
+                int playEnd = step(curFrameCount, totalFrame); //判断一下是否播放完
+                int curAnimFrame = lerp(lerp(loopFrame, curFrameCount - 1, playEnd), loopFrame, isloop);
+
+                //上一动画计算同理
+                isloop = lastAnimInfo.w;
+                totalFrame = max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed; //已播放的总帧数
+                loopFrame = fmod(totalFrame, lastFrameCount); //循环帧数
+                playEnd = step(lastFrameCount, totalFrame); //判断一下是否播放完
+                int lastAnimFrame = lerp(lerp(loopFrame, lastFrameCount - 1, playEnd), loopFrame, isloop);
                 
                 float4 curAnimPos = GetBonePos(curAnimInfo.x, curAnimFrame, boneCount, v);
                 float4 lastAnimPos = GetBonePos(lastAnimInfo.x, lastAnimFrame, boneCount, v);
                 
-                float weight = step(1, curAnimInfo.z);
-                float t = sin(saturate((_Time.y - curAnimPlayTime) / _DurationTime) * (PI / 2.0));
-                float4 blendPos = curAnimPos * t + lastAnimPos * (1 - t);
-                float4 finalPos = curAnimPos * (1 - weight) + blendPos * weight;
+                float weight = step(0.01, duration);
+                float t = sin(saturate((_Time.y - curAnimPlayTime) / duration) * (PI / 2.0));
+
+                //是否使用融合
+                float4 blendPos = lerp(lastAnimPos, curAnimPos, t);
+                float4 finalPos = lerp(curAnimPos, blendPos, weight);
                 
                 o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);

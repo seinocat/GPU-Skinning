@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using GPU_Skinning.Runtime.Data;
 using Seino.GpuSkin.Runtime;
@@ -6,8 +7,8 @@ using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.WSA;
 using Application = UnityEngine.Application;
+using Object = UnityEngine.Object;
 
 namespace GPU_Skinning.Editor
 {
@@ -21,41 +22,78 @@ namespace GPU_Skinning.Editor
             window.Show();
         }
         
-        [PropertyOrder(0)]
+        // 精度问题，不开放配置
+        private TextureFormat TexFormat = TextureFormat.RGBAFloat;
+
+        [PropertyOrder(0)] 
+        [Title("GpuSkin配置")] 
+        [LabelText("配置", SdfIconType.FileEarmarkFill), InlineButton("SaveConfig", "保存"), InlineButton("LoadConfig", "加载")]
+        public GpuSkinConfig Config;
+        
+        [PropertyOrder(10)]
         [Title("基本设置")]
         [LabelText("动画帧率", SdfIconType.Activity)]
         public AnimFrame FrameRate = AnimFrame.Frame30;
         
+        [PropertyOrder(11)] 
         [LabelText("贴图宽度", SdfIconType.BorderWidth), Tooltip("高度将自动计算")]
         public int TexWidth = 512;
-
-        [LabelText("Shader", SdfIconType.Brush)]
-        public Shader GpuSkinShader;
-
-        [LabelText("根目录", SdfIconType.Folder), FolderPath, OnValueChanged("AssetPathChange")] 
+        
+        [PropertyOrder(12)] 
+        [LabelText("根目录", SdfIconType.FolderFill), FolderPath, OnValueChanged("AssetPathChange")] 
         public string FolderPath = "Assets/Generate";
 
-        [LabelText("输出目录", SdfIconType.Folder), ReadOnly] 
+        [PropertyOrder(13)] 
+        [LabelText("输出目录", SdfIconType.FolderFill), ReadOnly] 
         public string AssetPath;
 
         [PropertyOrder(50)]
-        [Title("模型设置")]
-        [LabelText("烘焙物体", SdfIconType.Stars), OnValueChanged("AssetPathChange")]
+        [Title("模型和材质")]
+        [LabelText("烘焙模型", SdfIconType.PersonPlusFill), OnValueChanged("AssetPathChange")]
         public GameObject BakeTarget;
         
-        [PropertyOrder(100)]
-        [Title("动画信息")]
-        [LabelText("切片列表"), TableList]
-        public List<GpuAnimBakeData> AnimDatas;
+        [PropertyOrder(51)]
+        [LabelText("Material", SdfIconType.CircleFill)]
+        public Material BakeMaterial;
         
-        // 精度问题，不开放配置
-        private TextureFormat TexFormat = TextureFormat.RGBAFloat;
+        [PropertyOrder(52)]
+        [LabelText("Shader", SdfIconType.EyeFill)]
+        public Shader GpuSkinShader;
+        
+        [PropertyOrder(53)]
+        [LabelText("漫反射参数", SdfIconType.BodyText)]
+        public string MainTexProperty = "_MainTex";
+        
+        [PropertyOrder(54)]
+        [LabelText("漫反射贴图", SdfIconType.Image)]
+        public Texture MainTex;
 
+        [PropertyOrder(100)] 
+        [Title("动画信息")]
+        [LabelText("动画路径", SdfIconType.FolderFill), FolderPath, InlineButton("GetAnimClips", "获取")]
+        public string AnimFolderPath;
+        
+        [PropertyOrder(101)]
+        [LabelText("切片列表", SdfIconType.List), TableList]
+        public List<GpuAnimData> AnimDatas;
+        
         #region 烘焙方法
 
-        [PropertyOrder(200)]
+        
+        private static readonly int SHADER_PROPERTY_ANIMTEX = Shader.PropertyToID("_AnimTex");
+
         [Title("分步烘焙")]
-        [Button("烘焙Mesh")]
+        [PropertyOrder(200)]
+        [Button("创建材质")]
+        public void CreateMaterial()
+        {
+            BakeMaterial = new Material(GpuSkinShader);
+            BakeMaterial.SetTexture(MainTexProperty, MainTex);
+            CreateAssets(BakeMaterial, $"GpuSkin_{BakeTarget.name}_Mat.mat");
+        }
+        
+        [PropertyOrder(205)]
+        [Button("创建Mesh")]
         public void BakeMesh()
         {
             var mesh = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
@@ -78,8 +116,8 @@ namespace GPU_Skinning.Editor
             CreateAssets(skinMesh, $"{skinMesh.name}.asset");
         }
         
-        [PropertyOrder(201)]
-        [Button("烘焙骨骼动画")]
+        [PropertyOrder(206)]
+        [Button("烘焙动画贴图")]
         public void BakeBoneAnim()
         {
             var renderer = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>();
@@ -98,13 +136,14 @@ namespace GPU_Skinning.Editor
             
             for (int animIndex = 0; animIndex < AnimDatas.Count; animIndex++)
             {
-                var clip = AnimDatas[animIndex].Clip;
+                var animData = AnimDatas[animIndex];
+                var clip = animData.Clip;
                 var frameCount = (int)(frameRate * clip.length);
                 float startIndex = aniTexColor.Count + offset;
 
                 for (int frameIndex = 0; frameIndex < frameCount; frameIndex++)
                 {
-                    clip.SampleAnimation(BakeTarget, frameIndex / clip.frameRate);
+                    clip.SampleAnimation(BakeTarget, (float)frameIndex / frameRate);
                     
                     for (int boneIndex = 0; boneIndex < boneCount; boneIndex++)
                     {
@@ -116,7 +155,7 @@ namespace GPU_Skinning.Editor
                 }
                 
                 //开始索引, 帧数, 是否需要融合, 是否循环
-                Color headerInfo = new Color(startIndex, frameCount, 1f, clip.isLooping ? 1 : 0);
+                Color headerInfo = new Color(startIndex, frameCount, animData.Transition, clip.isLooping ? 1 : 0);
                 aniHeader.Add(headerInfo);
             }
             
@@ -127,7 +166,7 @@ namespace GPU_Skinning.Editor
             int height = Mathf.CeilToInt(aniTex.Count / (float)width);
             
             Texture2D tex = new Texture2D(width, height, TexFormat, false);
-            tex.name = $"GpuSkin_{BakeTarget.name}_AnimTex";
+            tex.name = $"GpuSkin_{BakeTarget.name}_Tex";
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
             tex.anisoLevel = 0;
@@ -141,10 +180,27 @@ namespace GPU_Skinning.Editor
             
             tex.Apply();
 
+            BakeMaterial.SetTexture(SHADER_PROPERTY_ANIMTEX, tex);
             CreateAssets(tex, $"{tex.name}.asset");
         }
         
-        [PropertyOrder(205)]
+        
+        [PropertyOrder(207)]
+        [Button("保存配置")]
+        public void CreateSaveConfig()
+        {
+            if (Config == null)
+            {
+                Config = CreateInstance<GpuSkinConfig>();
+                CreateAssets(Config, $"GpuSkin_{BakeTarget.name}_Config.asset");
+            }
+            
+            SaveConfig();
+        }
+
+        
+        
+        [PropertyOrder(250)]
         [Title("快速烘焙")]
         [Button("一键烘焙", ButtonSizes.Large)]
         public void Bake()
@@ -152,35 +208,127 @@ namespace GPU_Skinning.Editor
             BakeBoneAnim();
             BakeMesh();
         }
+        
+        
 
         #endregion
 
         #region 辅助方法
-
+        
         [PropertyOrder(101)]
-        [Button("读取帧事件")]
-        public void ReadAnimFrameEvents()
+        [OnInspectorGUI]
+        private void DrawAnimFrameEvents()
         {
-            if (AnimDatas == null)
+            // 创建自定义的GUI样式
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
+            buttonStyle.fixedWidth = 70;
+            
+            EditorGUILayout.Space(5);
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+
+            // 绘制按钮并应用样式
+            if (GUILayout.Button("读取帧事件", buttonStyle))
+            {
+                if (AnimDatas == null)
+                    return;
+
+                for (int i = 0; i < AnimDatas.Count; i++)
+                {
+                    var animData = AnimDatas[i];
+                    for (int j = 0; j < animData.Clip.events.Length; j++)
+                    {
+                        var clipEvent = animData.Clip.events[j];
+                        GpuAnimFrameEvent frameEvent = new GpuAnimFrameEvent();
+                        frameEvent.Frame = Mathf.FloorToInt(animData.Clip.frameRate * clipEvent.time);
+                        frameEvent.EventName = clipEvent.functionName;
+                        animData.FrameEvents.Add(frameEvent);
+                    } 
+                }
+            }
+            
+            EditorGUILayout.EndHorizontal();
+        }
+        
+        private void LoadConfig()
+        {
+            if (Config == null)
                 return;
 
-            for (int i = 0; i < AnimDatas.Count; i++)
-            {
-                var animData = AnimDatas[i];
-                for (int j = 0; j < animData.Clip.events.Length; j++)
-                {
-                    var clipEvent = animData.Clip.events[j];
-                    GpuAnimFrameEvent frameEvent = new GpuAnimFrameEvent();
-                    frameEvent.Frame = Mathf.FloorToInt(animData.Clip.frameRate * clipEvent.time);
-                    frameEvent.EventName = clipEvent.stringParameter;
-                    animData.FrameEvents.Add(frameEvent);
-                } 
-            }
+            FrameRate = Config.FrameRate;
+            BakeTarget = Config.BakeTarget;
+            BakeMaterial = Config.BakeMaterial;
+            GpuSkinShader = Config.GpuSkinShader;
+            MainTexProperty = Config.MainTexProperty;
+            MainTex = Config.MainTex;
+        }
+
+        private void SaveConfig()
+        {
+            if (Config == null)
+                return;
+            
+            Config.FrameRate = FrameRate;
+            Config.BakeTarget = BakeTarget;
+            Config.BakeMaterial = BakeMaterial;
+            Config.GpuSkinShader = GpuSkinShader;
+            Config.MainTexProperty = MainTexProperty;
+            Config.MainTex = MainTex;
+            Config.AnimDatas = AnimDatas;
         }
         
         private void AssetPathChange()
         {
             AssetPath = $"{FolderPath}/GpuSkinRes_{BakeTarget?.name}";
+        }
+
+        private void GetAnimClips()
+        {
+            if (EditorUtility.DisplayDialog("提示", "自动获取动画切片将清空现有配置信息，是否继续？", "继续", "取消"))
+            {
+                GetAnimClipInternal();
+            }
+        }
+        
+        internal void GetAnimClipInternal()
+        {
+            // 查重用
+            Dictionary<string, AnimationClip> animClips = new Dictionary<string, AnimationClip>();
+            FindAnimClipInternal("*.fbx", ref animClips);
+            FindAnimClipInternal("*.anim", ref animClips);
+
+            AnimDatas.Clear();
+            foreach (var paris in animClips)
+            {
+                GpuAnimData animData = new GpuAnimData();
+                animData.Clip = paris.Value;
+                animData.GetFrameEvents();
+                AnimDatas.Add(animData);
+            }
+        }
+
+        internal void FindAnimClipInternal(string suffix, ref Dictionary<string, AnimationClip> animClips)
+        {
+            string[] animFiles = Directory.GetFiles(AnimFolderPath, suffix, SearchOption.AllDirectories);
+            foreach (string animFile in animFiles)
+            {
+                string relativePath = animFile[animFile.IndexOf("Assets", StringComparison.Ordinal)..];
+                Object[] assets = AssetDatabase.LoadAllAssetsAtPath(relativePath);
+
+                foreach (Object asset in assets)
+                {
+                    if (asset is AnimationClip clip && !clip.name.StartsWith("__preview__"))
+                    {
+                        if (animClips.ContainsKey(clip.name))
+                        {
+                            Debug.LogError($"发现重名AnimationClip:{clip.name}");
+                            continue;
+                        }
+                        
+                        animClips.Add(clip.name, clip);
+                    }
+                }
+            }
         }
 
         private void CreateAssets(Object asset, string assetName)

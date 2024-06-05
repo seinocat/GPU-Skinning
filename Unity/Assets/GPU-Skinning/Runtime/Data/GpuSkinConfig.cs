@@ -1,20 +1,32 @@
 ﻿using System.Collections.Generic;
-using Seino.GpuSkin.Runtime;
+using GPU_Skinning.Runtime.Data;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace GPU_Skinning
+namespace Seino.GpuSkin.Runtime
 {
-    [CreateAssetMenu(fileName = "GpuSkinConfig", menuName = "Tools/GpuSkin/Create GpuSkin Config", order = 0)]
+    [CreateAssetMenu(fileName = "GpuSkinConfig", menuName = "Tools/GpuSkin/Create GpuSkin Config")]
     public class GpuSkinConfig : ScriptableObject
     {
-        [LabelText("烘焙目标")]
-        public Mesh GpuSkinMesh;
+        [LabelText("动画帧率")]
+        public AnimFrame FrameRate = AnimFrame.Frame30;
         
-        [LabelText("材质")]
-        public Material GpuSkinMat;
+        [LabelText("烘焙模型")]
+        public GameObject BakeTarget;
         
-        [LabelText("动画信息")]
-        public List<GpuAnimData> GpuAnimDatas;
+        [LabelText("Material")]
+        public Material BakeMaterial;
+        
+        [LabelText("Shader")]
+        public Shader GpuSkinShader;
+        
+        [LabelText("漫反射参数")]
+        public string MainTexProperty = "_MainTex";
+        
+        [LabelText("漫反射贴图")]
+        public Texture MainTex;
+        
+        [LabelText("切片列表")]
+        public List<GpuAnimData> AnimDatas;
     }
 }
