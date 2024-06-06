@@ -1,7 +1,7 @@
 ﻿using System;
 using Sirenix.OdinInspector;
 
-namespace GPU_Skinning.Runtime.Data
+namespace Seino.GpuSkin.Runtime
 {
     [Serializable]
     public enum AnimFrame
@@ -26,5 +26,27 @@ namespace GPU_Skinning.Runtime.Data
         
         [LabelText("120帧")]
         Frame120 = 120,
+    }
+
+    [Serializable]
+    public enum TextureWidth
+    {
+        [LabelText("自动计算")]
+        Auto = 0,
+        
+        [LabelText("128")]
+        Width128 = 128,
+        
+        [LabelText("256")]
+        Width256 = 256,
+        
+        [LabelText("512")]
+        Width512 = 512,
+        
+        [LabelText("1024")]
+        Width1024 = 1024,
+        
+        [LabelText("2048")]
+        Width2048 = 2048,
     }
 }

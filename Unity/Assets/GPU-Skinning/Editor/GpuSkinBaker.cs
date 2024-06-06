@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using GPU_Skinning.Runtime.Data;
 using Seino.GpuSkin.Runtime;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -26,8 +25,8 @@ namespace GPU_Skinning.Editor
         private TextureFormat TexFormat = TextureFormat.RGBAFloat;
 
         [PropertyOrder(0)] 
-        [Title("GpuSkin配置")] 
-        [LabelText("配置", SdfIconType.FileEarmarkFill), InlineButton("SaveConfig", "保存"), InlineButton("LoadConfig", "加载")]
+        [Title("配置")] 
+        [LabelText("GpuSkin配置", SdfIconType.FileEarmarkFill), InlineButton("SaveConfig", "保存"), InlineButton("LoadConfig", "加载")]
         public GpuSkinConfig Config;
         
         [PropertyOrder(10)]
@@ -37,7 +36,7 @@ namespace GPU_Skinning.Editor
         
         [PropertyOrder(11)] 
         [LabelText("贴图宽度", SdfIconType.BorderWidth), Tooltip("高度将自动计算")]
-        public int TexWidth = 512;
+        public TextureWidth TexWidth = TextureWidth.Auto;
         
         [PropertyOrder(12)] 
         [LabelText("根目录", SdfIconType.FolderFill), FolderPath, OnValueChanged("AssetPathChange")] 
@@ -49,28 +48,28 @@ namespace GPU_Skinning.Editor
 
         [PropertyOrder(50)]
         [Title("模型和材质")]
-        [LabelText("烘焙模型", SdfIconType.PersonPlusFill), OnValueChanged("AssetPathChange")]
+        [LabelText("烘焙模型*", SdfIconType.PersonPlusFill), OnValueChanged("AssetPathChange")]
         public GameObject BakeTarget;
+        
+        [PropertyOrder(51)]
+        [LabelText("Shader*", SdfIconType.EyeFill)]
+        public Shader GpuSkinShader;
         
         [PropertyOrder(51)]
         [LabelText("Mesh", SdfIconType.Grid3x3GapFill)]
         public Mesh BakeMesh;
         
         [PropertyOrder(51)]
+        [LabelText("AnimTex", SdfIconType.Image)]
+        public Object AnimTex;
+        
+        [PropertyOrder(51)]
         [LabelText("Material", SdfIconType.CircleFill)]
         public Material BakeMaterial;
         
-        [PropertyOrder(52)]
-        [LabelText("Shader", SdfIconType.EyeFill)]
-        public Shader GpuSkinShader;
-        
         [PropertyOrder(53)]
-        [LabelText("漫反射参数", SdfIconType.BodyText)]
-        public string MainTexProperty = "_MainTex";
-        
-        [PropertyOrder(54)]
-        [LabelText("漫反射贴图", SdfIconType.Image)]
-        public Texture MainTex;
+        [LabelText("Shader贴图", SdfIconType.Printer), TableList]
+        public List<GpuSkinShaderTexData> ShaderTexDatas;
 
         [PropertyOrder(100)] 
         [Title("动画信息")]
@@ -98,7 +97,11 @@ namespace GPU_Skinning.Editor
             }
             
             BakeMaterial = new Material(GpuSkinShader);
-            BakeMaterial.SetTexture(MainTexProperty, MainTex);
+
+            foreach (var data in ShaderTexDatas)
+            {
+                BakeMaterial.SetTexture(data.PropertyName, data.Texture);
+            }
             CreateAssets(BakeMaterial, $"GpuSkin_{BakeTarget.name}_Mat.mat");
         }
         
@@ -166,7 +169,7 @@ namespace GPU_Skinning.Editor
                     }
                 }
                 
-                //开始索引, 帧数, 是否需要融合, 是否循环
+                //开始索引, 帧数, 融合, 是否循环
                 Color headerInfo = new Color(startIndex, frameCount, animData.Transition, clip.isLooping ? 1 : 0);
                 aniHeader.Add(headerInfo);
             }
@@ -174,8 +177,11 @@ namespace GPU_Skinning.Editor
             List<Color> aniTex = new List<Color>(aniHeader);
             aniTex.AddRange(aniTexColor);
 
-            int width = TexWidth;
+            int width = ComputeTexWidth(aniTex.Count);
             int height = Mathf.CeilToInt(aniTex.Count / (float)width);
+
+            if (width == -1)
+                return;
             
             Texture2D tex = new Texture2D(width, height, TexFormat, false);
             tex.name = $"GpuSkin_{BakeTarget.name}_Tex";
@@ -191,11 +197,12 @@ namespace GPU_Skinning.Editor
             }
             
             tex.Apply();
-
+            
+            AnimTex = tex;
             BakeMaterial.SetTexture(SHADER_PROPERTY_ANIMTEX, tex);
+            
             CreateAssets(tex, $"{tex.name}.asset");
         }
-        
         
         [PropertyOrder(207)]
         [Button("保存配置")]
@@ -210,8 +217,6 @@ namespace GPU_Skinning.Editor
             SaveConfig();
         }
 
-        
-        
         [PropertyOrder(250)]
         [Title("快速操作")]
         [Button("全部执行", ButtonSizes.Large)]
@@ -223,11 +228,31 @@ namespace GPU_Skinning.Editor
             SaveConfig();
         }
         
-        
-
         #endregion
 
         #region 辅助方法
+
+        private int ComputeTexWidth(int num)
+        {
+            if (TexWidth == TextureWidth.Auto)
+            {
+                if (num <= 0)
+                    return 512;
+            
+                int sqrtNum = (int)Mathf.Sqrt(num);
+                int nextPowerOfTwo = Mathf.NextPowerOfTwo(sqrtNum);
+                return nextPowerOfTwo;
+            }
+
+            int width = (int)TexWidth;
+            if (width * width < num)
+            {
+                EditorUtility.DisplayDialog("提示", "贴图大小不能存储全部信息，将有数据丢失！请改变贴图大小", "确定");
+                return -1;
+            }
+
+            return width;
+        }
         
         private void ReadAnimClipEvents()
         {
@@ -256,10 +281,10 @@ namespace GPU_Skinning.Editor
             FrameRate = Config.FrameRate;
             BakeTarget = Config.BakeTarget;
             BakeMesh = Config.BakeMesh;
+            AnimTex = Config.AnimTex;
             BakeMaterial = Config.BakeMaterial;
             GpuSkinShader = Config.GpuSkinShader;
-            MainTexProperty = Config.MainTexProperty;
-            MainTex = Config.MainTex;
+            ShaderTexDatas = Config.ShaderTexDatas;
             AnimDatas = Config.AnimDatas;
             AssetPathChange();
         }
@@ -272,10 +297,10 @@ namespace GPU_Skinning.Editor
             Config.FrameRate = FrameRate;
             Config.BakeTarget = BakeTarget;
             Config.BakeMesh = BakeMesh;
+            Config.AnimTex = AnimTex;
             Config.BakeMaterial = BakeMaterial;
             Config.GpuSkinShader = GpuSkinShader;
-            Config.MainTexProperty = MainTexProperty;
-            Config.MainTex = MainTex;
+            Config.ShaderTexDatas = ShaderTexDatas;
             Config.AnimDatas = AnimDatas;
         }
         

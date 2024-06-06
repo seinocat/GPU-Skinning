@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using GPU_Skinning.Runtime.Data;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -14,7 +13,10 @@ namespace Seino.GpuSkin.Runtime
         [LabelText("烘焙模型")]
         public GameObject BakeTarget;
         
-        [LabelText("烘焙模型")]
+        [LabelText("动画贴图")]
+        public Object AnimTex;
+        
+        [LabelText("Mesh")]
         public Mesh BakeMesh;
         
         [LabelText("Material")]
@@ -22,13 +24,10 @@ namespace Seino.GpuSkin.Runtime
         
         [LabelText("Shader")]
         public Shader GpuSkinShader;
-        
-        [LabelText("漫反射参数")]
-        public string MainTexProperty = "_MainTex";
-        
-        [LabelText("漫反射贴图")]
-        public Texture MainTex;
-        
+
+        [LabelText("Shader贴图参数")]
+        public List<GpuSkinShaderTexData> ShaderTexDatas;
+
         [LabelText("切片列表")]
         public List<GpuAnimData> AnimDatas;
     }
