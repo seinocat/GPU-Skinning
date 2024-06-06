@@ -4,14 +4,16 @@
     {
         Base = 1 << 0,
         
-        TopHalfBody = 2 << 1,
+        UpperBody = 1 << 1,
         
-        BottomHalfBody = 2 << 2,
+        LowerBody = 1 << 2,
         
-        Hand = 2 << 3,
+        Head = 1 << 3,
         
-        LeftHand = 2 << 4,
+        Hands = 1 << 4,
         
-        RightHand = 2 << 5,
+        LeftHand = 1 << 5,
+        
+        RightHand = 1 << 6,
     }
 }

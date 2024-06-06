@@ -9,7 +9,7 @@ using UnityEngine;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
 
-namespace GPU_Skinning.Editor
+namespace Seino.GpuSkin.Editor
 {
     public class GpuSkinBaker : OdinEditorWindow
     {

@@ -35,5 +35,5 @@ Material:
     m_Floats:
     - _Speed: 1
     m_Colors:
-    - _BlendParam: {r: 1, g: 0, b: 1, a: 0}
+    - _BlendParam: {r: 2, g: 0, b: 1, a: 0}
   m_BuildTextureStacks: []

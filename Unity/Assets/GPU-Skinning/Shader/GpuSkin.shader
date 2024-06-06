@@ -90,6 +90,16 @@
                 return positionOS;
             }
 
+            int GetFrame(int frameCount, float frameRate, float time, int loop)
+            {
+                int totalFrame = max(_Time.y - time, 0) * frameRate * _Speed; //已播放的总帧数
+                int loopFrame = fmod(totalFrame, frameCount); //循环帧数
+                int playEnd = step(frameCount, totalFrame); //判断一下是否播放完
+                int frame = lerp(lerp(loopFrame, frameCount - 1, playEnd), loopFrame, loop);
+
+                return frame;
+            }
+
             int GetIndex(int combine)
             {
                 return combine & 0xff;
@@ -119,19 +129,9 @@
                 int lastFrameCount = lastAnimInfo.y;//上一动画帧数
                 float duration = curAnimInfo.z;
 
-                //计算当前动画所处帧数
-                int isloop = curAnimInfo.w;
-                int totalFrame = max(_Time.y - curAnimPlayTime, 0) * frameRate * _Speed; //已播放的总帧数
-                int loopFrame = fmod(totalFrame, curFrameCount); //循环帧数
-                int playEnd = step(curFrameCount, totalFrame); //判断一下是否播放完
-                int curAnimFrame = lerp(lerp(loopFrame, curFrameCount - 1, playEnd), loopFrame, isloop);
-
-                //上一动画计算同理
-                isloop = lastAnimInfo.w;
-                totalFrame = max(_Time.y - lastAnimPlayTime, 0) * frameRate * _Speed;
-                loopFrame = fmod(totalFrame, lastFrameCount); 
-                playEnd = step(lastFrameCount, totalFrame); 
-                int lastAnimFrame = lerp(lerp(loopFrame, lastFrameCount - 1, playEnd), loopFrame, isloop);
+                //计算动画所处帧数
+                int curAnimFrame = GetFrame(curFrameCount, frameRate, curAnimPlayTime, curAnimInfo.w);
+                int lastAnimFrame = GetFrame(lastFrameCount, frameRate, lastAnimPlayTime, lastAnimInfo.w);
                 
                 float4 curAnimPos = GetBonePos(curAnimInfo.x, curAnimFrame, boneCount, v);
                 float4 lastAnimPos = GetBonePos(lastAnimInfo.x, lastAnimFrame, boneCount, v);
@@ -142,6 +142,22 @@
                 //是否使用融合
                 float4 blendPos = lerp(lastAnimPos, curAnimPos, t);
                 float4 finalPos = lerp(curAnimPos, blendPos, weight);
+
+                
+
+                if (v.uv1.x == 1)
+                {
+                    float scale = 0;
+                    // 创建缩放矩阵
+                    float4x4 scaleMatrix = float4x4(
+                        scale, 0, 0, 0,
+                        0, scale, 0, 0,
+                        0, 0, scale, 0,
+                        0, 0, 0, 1
+                    );
+
+                    finalPos = mul(scaleMatrix, finalPos);
+                }
                 
                 o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
