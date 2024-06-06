@@ -6,6 +6,9 @@ namespace Seino.GpuSkin.Runtime
     [Serializable]
     public enum AnimFrame
     {
+        [LabelText("自动检测")]
+        FrameAuto = 0,
+        
         [LabelText("12帧")]
         Frame12 = 12,
         

@@ -4606,21 +4606,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TexFormat: 20
-  FrameRate: 30
-  TexWidth: 512
-  GpuSkinShader: {fileID: 0}
-  AnimDatas:
-  - {Clip: {fileID: 0}, Transition: 0, FrameEvents:
-    - Frame: 26
-      EventName: 
-    - Frame: 0
-      EventName: 
-}
-  - {Clip: {fileID: 0}, Transition: 0, FrameEvents: []
-}
-  - {Clip: {fileID: 0}, Transition: 0, FrameEvents: []
-}
 --- !u!4 &826221710
 Transform:
   m_ObjectHideFlags: 0
@@ -9971,11 +9956,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931f79fdde1a49c586a16afea35ee54d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TexFormat: 20
-  FrameRate: 30
-  TexWidth: 512
-  GpuSkinShader: {fileID: 0}
-  AnimDatas: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimTex ("Anim Tex", 2D) = "white"{}
         _Speed ("Speed", float)  = 1
-        _BlendParam ("_BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引&层级, 当前动画播放时间，上一动画索引&层级，上一动画播放时间
+        _BlendParam ("BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引&层级, 当前动画播放时间，上一动画索引&层级，上一动画播放时间
     }
     
     SubShader

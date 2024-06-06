@@ -13,11 +13,15 @@ namespace GPU_Skinning.Editor
 {
     public class GpuSkinBaker : OdinEditorWindow
     {
+        private static int Width = 630;
+        private static int Height = 750;
+        
         [MenuItem("Tools/GpuSkin/GpuSkinBaker %#z")]
         private static void ShowWindow()
         {
             var window = GetWindow<GpuSkinBaker>();
-            window.titleContent = new GUIContent("GpuSKinBaker");
+            window.titleContent = new GUIContent("GpuSkinBaker");
+            window.position = new Rect(Screen.currentResolution.width / 2 - Width / 2, Screen.currentResolution.height / 2 - Height / 2, Width, Height);
             window.Show();
         }
         
@@ -32,7 +36,7 @@ namespace GPU_Skinning.Editor
         [PropertyOrder(10)]
         [Title("基本设置")]
         [LabelText("动画帧率", SdfIconType.Activity)]
-        public AnimFrame FrameRate = AnimFrame.Frame30;
+        public AnimFrame FrameRate = AnimFrame.FrameAuto;
         
         [PropertyOrder(11)] 
         [LabelText("贴图宽度", SdfIconType.BorderWidth), Tooltip("高度将自动计算")]
@@ -48,11 +52,11 @@ namespace GPU_Skinning.Editor
 
         [PropertyOrder(50)]
         [Title("模型和材质")]
-        [LabelText("烘焙模型*", SdfIconType.PersonPlusFill), OnValueChanged("AssetPathChange")]
+        [LabelText("烘焙模型", SdfIconType.PersonPlusFill), OnValueChanged("AssetPathChange")]
         public GameObject BakeTarget;
         
         [PropertyOrder(51)]
-        [LabelText("Shader*", SdfIconType.EyeFill)]
+        [LabelText("Shader", SdfIconType.EyeFill)]
         public Shader GpuSkinShader;
         
         [PropertyOrder(51)]
@@ -95,13 +99,17 @@ namespace GPU_Skinning.Editor
                 EditorUtility.DisplayDialog("提示", "shader不能为空!", "ok");
                 return;
             }
-            
-            BakeMaterial = new Material(GpuSkinShader);
 
+            if (BakeMaterial == null)
+            {
+                BakeMaterial = new Material(GpuSkinShader);
+            }
+            
             foreach (var data in ShaderTexDatas)
             {
                 BakeMaterial.SetTexture(data.PropertyName, data.Texture);
             }
+            
             CreateAssets(BakeMaterial, $"GpuSkin_{BakeTarget.name}_Mat.mat");
         }
         
@@ -140,7 +148,7 @@ namespace GPU_Skinning.Editor
             var boneCount = bones.Length;
             var bindposes = renderer.sharedMesh.bindposes;
             var animCount = AnimDatas.Count;
-            var frameRate = (int)FrameRate;
+            var frameRate = ComputeFrame();
             
             List<Color> aniHeader = new List<Color>();
             List<Color> aniTexColor = new List<Color>();
@@ -201,7 +209,7 @@ namespace GPU_Skinning.Editor
             AnimTex = tex;
             BakeMaterial.SetTexture(SHADER_PROPERTY_ANIMTEX, tex);
             
-            CreateAssets(tex, $"{tex.name}.asset");
+            CreateAssets(tex, $"{tex.name}.asset", true);
         }
         
         [PropertyOrder(207)]
@@ -213,7 +221,8 @@ namespace GPU_Skinning.Editor
                 Config = CreateInstance<GpuSkinConfig>();
                 CreateAssets(Config, $"GpuSkin_{BakeTarget.name}_Config.asset");
             }
-            
+
+            var pos = position;
             SaveConfig();
         }
 
@@ -231,6 +240,19 @@ namespace GPU_Skinning.Editor
         #endregion
 
         #region 辅助方法
+
+        private int ComputeFrame()
+        {
+            //默认30帧
+            if (FrameRate != AnimFrame.FrameAuto)
+                return (int)FrameRate;
+            
+            if (AnimDatas.Count == 0)
+                return (int)AnimFrame.Frame30;
+
+            int frameRate = (int)(AnimDatas[0].Clip?.frameRate ?? 30);
+            return frameRate;
+        }
 
         private int ComputeTexWidth(int num)
         {
@@ -361,15 +383,17 @@ namespace GPU_Skinning.Editor
             }
         }
 
-        private void CreateAssets(Object asset, string assetName)
+        private void CreateAssets(Object asset, string assetName, bool force = false)
         {
             string path = $"{AssetPath}/{assetName}";
             string directoryPath = Path.Combine(Application.dataPath.Replace("Assets", ""), AssetPath);
             if (!Directory.Exists(directoryPath))
-            {
                 Directory.CreateDirectory(directoryPath);
-            }
-
+            
+            Object pAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
+            if (pAsset != null && !force)
+                return;
+            
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
