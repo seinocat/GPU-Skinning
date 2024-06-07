@@ -26,6 +26,9 @@ namespace Seino.GpuSkin.Runtime
             Vector4 timeParam = GpuSkinMaterial.GetVector(TimeParam);
             Vector4 layerParam = GpuSkinMaterial.GetVector(LayerParam);
 
+            int curLayer = 35;
+            int a = curLayer & (int)Layer;
+            
             if (Layer == GpuSkinLayer.FullBody)
             {
                 int curIndex = GpuSkinUtils.GetIndex0((int)layerParam.y);
