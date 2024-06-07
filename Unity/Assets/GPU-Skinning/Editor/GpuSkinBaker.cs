@@ -4,6 +4,7 @@ using System.IO;
 using Seino.GpuSkin.Runtime;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -76,7 +77,7 @@ namespace Seino.GpuSkin.Editor
         public List<GpuSkinShaderTexData> ShaderTexDatas;
 
         [PropertyOrder(80)] 
-        [LabelText("层级设置"), TableList]
+        [LabelText("层级设置", SdfIconType.LayersFill), TableList]
         public List<BoneLayerData> BoneLayers = new() {Head, LeftHand, RightHand, Pelvis, LeftLeg, RightLeg};
         
         [PropertyOrder(100)] 
@@ -92,7 +93,7 @@ namespace Seino.GpuSkin.Editor
         private static BoneLayerData Head = new(){Layer = GpuSkinLayer.Head};
         private static BoneLayerData LeftHand = new(){Layer = GpuSkinLayer.LeftHand};
         private static BoneLayerData RightHand = new(){Layer = GpuSkinLayer.RightHand};
-        private static BoneLayerData Pelvis = new(){Layer = GpuSkinLayer.Pelvis};
+        private static BoneLayerData Pelvis = new(){Layer = GpuSkinLayer.FullBody};
         private static BoneLayerData LeftLeg = new(){Layer = GpuSkinLayer.LeftLeg};
         private static BoneLayerData RightLeg = new(){Layer = GpuSkinLayer.RightLeg};
         
@@ -128,11 +129,12 @@ namespace Seino.GpuSkin.Editor
         [Button("创建Mesh")]
         public void CreateMesh()
         {
-            var mesh = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh;
+            var render = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>();
+            var mesh = render.sharedMesh;
             var skinMesh = Instantiate(mesh);
             var boneWeights = mesh.boneWeights;
-            Vector2[] uv2 = new Vector2[boneWeights.Length] ;
-            Vector2[] uv3 = new Vector2[boneWeights.Length] ;
+            Vector2[] uv2 = new Vector2[boneWeights.Length];
+            Vector2[] uv3 = new Vector2[boneWeights.Length];
             
             for (int i = 0; i < boneWeights.Length; i++)
             {
@@ -155,7 +157,68 @@ namespace Seino.GpuSkin.Editor
         [Button("创建Layer")]
         public void CreateLayer()
         {
+            if (BakeMesh == null)
+                return;
             
+            var render = BakeTarget.GetComponentInChildren<SkinnedMeshRenderer>();
+            var mesh = Instantiate(BakeMesh);
+            var bones = render.bones;
+            var boneWeights = mesh.boneWeights;
+
+            Dictionary<GpuSkinLayer, Dictionary<string, Transform>> layerBones = new Dictionary<GpuSkinLayer, Dictionary<string, Transform>>();
+            foreach (var layerData in BoneLayers)
+            {
+                Dictionary<string, Transform> childTransforms = new Dictionary<string, Transform>();
+                var bone = GpuSkinUtils.GetTransformByName(BakeTarget.transform, layerData.BoneName);
+                if (bone != null)
+                {
+                    GpuSkinUtils.GetTransformChilds(bone, ref childTransforms);
+                }
+
+                if (childTransforms.Count > 0)
+                {
+                    layerBones.Add(layerData.Layer, childTransforms);
+                }
+            }
+
+            List<(int, int)> boneIndexAndLayer = new List<(int, int)>();
+            for (int i = 0; i < bones.Length; i++)
+            {
+                var bone = bones[i];
+                GpuSkinLayer layer = GpuSkinLayer.FullBody;
+
+                bool head = layerBones[GpuSkinLayer.Head].ContainsKey(bone.name);
+                bool leftHand = layerBones[GpuSkinLayer.LeftHand].ContainsKey(bone.name);
+                bool rightHand = layerBones[GpuSkinLayer.RightHand].ContainsKey(bone.name);
+                bool leftLeg = layerBones[GpuSkinLayer.LeftLeg].ContainsKey(bone.name);
+                bool rightLeg = layerBones[GpuSkinLayer.RightLeg].ContainsKey(bone.name);
+                bool spine = !head && !leftHand && !rightHand && !leftLeg && !rightLeg;
+
+                if (head) layer |= GpuSkinLayer.Head;
+                if (leftHand) layer |= GpuSkinLayer.LeftHand;
+                if (rightHand) layer |= GpuSkinLayer.RightHand;
+                if (leftLeg) layer |= GpuSkinLayer.LeftLeg;
+                if (rightLeg) layer |= GpuSkinLayer.RightLeg;
+                if (spine) layer |= GpuSkinLayer.Spine;
+                if (head || leftHand || rightHand || spine) layer |= GpuSkinLayer.UpperBody;
+                if (leftLeg || rightLeg) layer |= GpuSkinLayer.LowerBody;
+                
+                boneIndexAndLayer.Add((i, (int)layer));
+            }
+            
+            Vector2[] uv4 = new Vector2[boneWeights.Length];
+            for (int i = 0; i < boneWeights.Length; i++)
+            {
+                var boneWeight = boneWeights[i];
+                var boneIndex = boneWeight.weight0 > boneWeight.weight1 ? boneWeight.boneIndex0 : boneWeight.boneIndex1;
+                var boneLayer = boneIndexAndLayer.Find(x=> x.Item1 == boneIndex);
+                uv4[i] = new Vector2(boneLayer.Item1, boneLayer.Item2);
+            }
+            
+            mesh.name = $"GpuSkinRes_{BakeTarget.name}_Mesh";
+            mesh.SetUVs(3, uv4);
+            
+            CreateAssets(mesh, $"{mesh.name}.asset", true);
         }
         
         [PropertyOrder(210)]
@@ -415,6 +478,8 @@ namespace Seino.GpuSkin.Editor
             Object pAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
             if (pAsset != null && !force)
                 return;
+            if (pAsset != null && force)
+                AssetDatabase.DeleteAsset(path);
             
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();

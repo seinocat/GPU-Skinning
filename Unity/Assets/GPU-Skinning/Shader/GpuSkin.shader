@@ -85,8 +85,8 @@
                 boneIndex = v.uv2.x;
                 texIndex = index + 3 * (boneCount * frame + boneIndex);
                 float4x4 boneMatrix2 = GetBoneMatrix(texIndex);
-
-                float4 positionOS = mul(boneMatrix1, v.vertex) * boneWeight + mul(boneMatrix2, v.vertex) * (1 - boneWeight);
+                
+                float4 positionOS = lerp(mul(boneMatrix2, v.vertex), mul(boneMatrix1, v.vertex), boneWeight);
                 return positionOS;
             }
 

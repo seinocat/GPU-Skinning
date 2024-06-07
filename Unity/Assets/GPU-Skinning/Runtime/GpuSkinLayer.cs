@@ -1,11 +1,13 @@
-﻿using Sirenix.OdinInspector;
+﻿using System;
+using Sirenix.OdinInspector;
 
 namespace Seino.GpuSkin.Runtime
 {
+    [Flags]
     public enum GpuSkinLayer
     {
-        [LabelText("基本层")]
-        Base = 1 << 0,
+        [LabelText("全身")]
+        FullBody = 1 << 0,
         
         [LabelText("上半身")]
         UpperBody = 1 << 1,
@@ -31,7 +33,7 @@ namespace Seino.GpuSkin.Runtime
         [LabelText("右腿")]
         RightLeg = 1 << 8,
         
-        [LabelText("骨盆")]
-        Pelvis = 1 << 9,
+        [LabelText("脊椎")]
+        Spine = 1 << 9,
     }
 }

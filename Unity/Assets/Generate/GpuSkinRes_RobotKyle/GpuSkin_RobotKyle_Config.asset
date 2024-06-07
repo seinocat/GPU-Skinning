@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d1b3b1803bb499bbd9e7a777fd8e5bd, type: 3}
   m_Name: GpuSkin_RobotKyle_Config
   m_EditorClassIdentifier: 
-  FrameRate: 30
+  FrameRate: 0
   BakeTarget: {fileID: 3862277631971027947, guid: 7ae956b4f54394e80818898d8f4d30c6, type: 3}
-  AnimTex: {fileID: 2800000, guid: 839216100aae2444c8f986be2f2cc05b, type: 2}
-  BakeMesh: {fileID: 4300000, guid: d53e774bc1f90134d954c9143bf34a83, type: 2}
-  BakeMaterial: {fileID: 2100000, guid: 179758ba9e9ed57488fafcba3bc00d22, type: 2}
+  AnimTex: {fileID: 2800000, guid: 899dc368148cd3d498ff96e68e59aa39, type: 2}
+  BakeMesh: {fileID: 0}
+  BakeMaterial: {fileID: 2100000, guid: 260ba0041a19f7f489cb337cca3350b3, type: 2}
   GpuSkinShader: {fileID: 4800000, guid: 04e94a483acb43da96d8bf59130de0a7, type: 3}
-  ShaderTexDatas: []
+  ShaderTexDatas:
+  - PropertyName: _MainTex
+    Texture: {fileID: 2800000, guid: 4cd7cfbb985ec4518bfc6c73c4ee1433, type: 3}
   AnimDatas:
   - Clip: {fileID: -3100369314251171874, guid: 12e52e465ed793a4d801955e9f964a82, type: 3}
     Transition: 0.25
@@ -29,3 +31,22 @@ MonoBehaviour:
   - Clip: {fileID: 6564411413370888346, guid: 16114d403eabb53438de032c6f0d1deb, type: 3}
     Transition: 0.25
     FrameEvents: []
+  BoneLayers:
+  - Layer: 8
+    BoneName: Neck
+    Bone: {fileID: 0}
+  - Layer: 32
+    BoneName: Left_Shoulder
+    Bone: {fileID: 0}
+  - Layer: 64
+    BoneName: Right_Shoulder
+    Bone: {fileID: 0}
+  - Layer: 512
+    BoneName: Hips
+    Bone: {fileID: 0}
+  - Layer: 128
+    BoneName: Left_UpperLeg
+    Bone: {fileID: 0}
+  - Layer: 256
+    BoneName: Right_UpperLeg
+    Bone: {fileID: 0}
