@@ -160,14 +160,14 @@
                 float4 topLayerPos = GetAnimation(v, topCurIndex, _TimeParam.z, GetIndex1(_LayerParam.w), _TimeParam.w);
 
                 int curLayer = v.uv3.x; //当前顶点所属层级
-                int inLayer = step((curLayer & topLayer) + 0.5, topLayer);//是否属于该层级
-                int layerWeight = step(baseLayer + 0.5, topLayer);
+                int inLayer = step(0.1, curLayer & topLayer);//是否属于该层级
+                int layerWeight = step(baseLayer + 0.1, topLayer);
                 int sameAnim = step(topCurIndex, baseCurIndex);
                 
                 topLayerPos = lerp(baseLayerPos, topLayerPos, layerWeight);
-                // topLayerPos = lerp(topLayerPos, baseLayerPos, sameAnim);
+                topLayerPos = lerp(topLayerPos, baseLayerPos, sameAnim);
                 
-                float4 finalPos = lerp(topLayerPos, baseLayerPos, inLayer);
+                float4 finalPos = lerp(baseLayerPos, topLayerPos, inLayer);
 
                 o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
