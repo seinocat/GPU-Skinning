@@ -132,6 +132,7 @@ namespace Seino.GpuSkin.Editor
             
             skinMesh.SetUVs(1, uv2);
             skinMesh.SetUVs(2, uv3);
+            
             skinMesh.name = $"GpuSkin_{BakeTarget.name}_Mesh";
 
             BakeMesh = skinMesh;
@@ -235,6 +236,7 @@ namespace Seino.GpuSkin.Editor
             CreateMesh();
             BakeBoneAnim();
             SaveConfig();
+            EditorUtility.DisplayDialog("提示", "操作完成", "确定");
         }
         
         #endregion

@@ -142,22 +142,6 @@
                 //是否使用融合
                 float4 blendPos = lerp(lastAnimPos, curAnimPos, t);
                 float4 finalPos = lerp(curAnimPos, blendPos, weight);
-
-                
-
-                if (v.uv1.x == 1)
-                {
-                    float scale = 0;
-                    // 创建缩放矩阵
-                    float4x4 scaleMatrix = float4x4(
-                        scale, 0, 0, 0,
-                        0, scale, 0, 0,
-                        0, 0, scale, 0,
-                        0, 0, 0, 1
-                    );
-
-                    finalPos = mul(scaleMatrix, finalPos);
-                }
                 
                 o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
