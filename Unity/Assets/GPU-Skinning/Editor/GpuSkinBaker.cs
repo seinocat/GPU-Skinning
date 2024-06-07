@@ -75,6 +75,10 @@ namespace Seino.GpuSkin.Editor
         [LabelText("Shader贴图", SdfIconType.Printer), TableList]
         public List<GpuSkinShaderTexData> ShaderTexDatas;
 
+        [PropertyOrder(80)] 
+        [LabelText("层级设置"), TableList]
+        public List<BoneData> BoneLayers = new() {Head, LeftHand, RightHand, Pelvis, LeftLeg, RightLeg};
+        
         [PropertyOrder(100)] 
         [Title("动画信息")]
         [LabelText("动画路径", SdfIconType.FolderFill), FolderPath, 
@@ -84,6 +88,14 @@ namespace Seino.GpuSkin.Editor
         [PropertyOrder(102)]
         [LabelText("列表"), TableList]
         public List<GpuAnimData> AnimDatas;
+        
+        
+        private static BoneData Head = new(){Layer = GpuSkinLayer.Head};
+        private static BoneData LeftHand = new(){Layer = GpuSkinLayer.LeftHand};
+        private static BoneData RightHand = new(){Layer = GpuSkinLayer.RightHand};
+        private static BoneData Pelvis = new(){Layer = GpuSkinLayer.Pelvis};
+        private static BoneData LeftLeg = new(){Layer = GpuSkinLayer.LeftLeg};
+        private static BoneData RightLeg = new(){Layer = GpuSkinLayer.RightLeg};
         
         #region 烘焙方法
         
@@ -110,7 +122,7 @@ namespace Seino.GpuSkin.Editor
                 BakeMaterial.SetTexture(data.PropertyName, data.Texture);
             }
             
-            CreateAssets(BakeMaterial, $"GpuSkin_{BakeTarget.name}_Mat.mat");
+            CreateAssets(BakeMaterial, $"GpuSkinRes_{BakeTarget.name}_Mat.mat");
         }
         
         [PropertyOrder(205)]
@@ -133,7 +145,7 @@ namespace Seino.GpuSkin.Editor
             skinMesh.SetUVs(1, uv2);
             skinMesh.SetUVs(2, uv3);
             
-            skinMesh.name = $"GpuSkin_{BakeTarget.name}_Mesh";
+            skinMesh.name = $"GpuSkinRes_{BakeTarget.name}_Mesh";
 
             BakeMesh = skinMesh;
             
@@ -193,7 +205,7 @@ namespace Seino.GpuSkin.Editor
                 return;
             
             Texture2D tex = new Texture2D(width, height, TexFormat, false);
-            tex.name = $"GpuSkin_{BakeTarget.name}_Tex";
+            tex.name = $"GpuSkinRes_{BakeTarget.name}_Tex";
             tex.wrapMode = TextureWrapMode.Clamp;
             tex.filterMode = FilterMode.Point;
             tex.anisoLevel = 0;
