@@ -1,7 +1,9 @@
-﻿using Sirenix.OdinInspector;
+﻿using System;
+using Sirenix.OdinInspector;
 
 namespace Seino.GpuSkin.Runtime
 {
+    [Flags]
     public enum GpuSkinLayer
     {
         [LabelText("全身")]
