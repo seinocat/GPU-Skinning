@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Seino.GpuSkin.Runtime
 {
     [Serializable]
-    public class BoneData
+    public class BoneLayerData
     {
         [LabelText("层级", SdfIconType.LayersFill)]
         public GpuSkinLayer Layer;

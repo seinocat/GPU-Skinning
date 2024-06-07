@@ -13,8 +13,8 @@ namespace Seino.GpuSkin.Editor
 {
     public class GpuSkinBaker : OdinEditorWindow
     {
-        private static int Width = 630;
-        private static int Height = 750;
+        private static int Width = 700;
+        private static int Height = 890;
         
         [MenuItem("Tools/GpuSkin/GpuSkinBaker %#z")]
         private static void ShowWindow()
@@ -77,7 +77,7 @@ namespace Seino.GpuSkin.Editor
 
         [PropertyOrder(80)] 
         [LabelText("层级设置"), TableList]
-        public List<BoneData> BoneLayers = new() {Head, LeftHand, RightHand, Pelvis, LeftLeg, RightLeg};
+        public List<BoneLayerData> BoneLayers = new() {Head, LeftHand, RightHand, Pelvis, LeftLeg, RightLeg};
         
         [PropertyOrder(100)] 
         [Title("动画信息")]
@@ -89,13 +89,12 @@ namespace Seino.GpuSkin.Editor
         [LabelText("列表"), TableList]
         public List<GpuAnimData> AnimDatas;
         
-        
-        private static BoneData Head = new(){Layer = GpuSkinLayer.Head};
-        private static BoneData LeftHand = new(){Layer = GpuSkinLayer.LeftHand};
-        private static BoneData RightHand = new(){Layer = GpuSkinLayer.RightHand};
-        private static BoneData Pelvis = new(){Layer = GpuSkinLayer.Pelvis};
-        private static BoneData LeftLeg = new(){Layer = GpuSkinLayer.LeftLeg};
-        private static BoneData RightLeg = new(){Layer = GpuSkinLayer.RightLeg};
+        private static BoneLayerData Head = new(){Layer = GpuSkinLayer.Head};
+        private static BoneLayerData LeftHand = new(){Layer = GpuSkinLayer.LeftHand};
+        private static BoneLayerData RightHand = new(){Layer = GpuSkinLayer.RightHand};
+        private static BoneLayerData Pelvis = new(){Layer = GpuSkinLayer.Pelvis};
+        private static BoneLayerData LeftLeg = new(){Layer = GpuSkinLayer.LeftLeg};
+        private static BoneLayerData RightLeg = new(){Layer = GpuSkinLayer.RightLeg};
         
         #region 烘焙方法
         
@@ -152,7 +151,14 @@ namespace Seino.GpuSkin.Editor
             CreateAssets(skinMesh, $"{skinMesh.name}.asset");
         }
         
-        [PropertyOrder(206)]
+        [PropertyOrder(208)]
+        [Button("创建Layer")]
+        public void CreateLayer()
+        {
+            
+        }
+        
+        [PropertyOrder(210)]
         [Button("烘焙贴图")]
         public void BakeBoneAnim()
         {
@@ -225,7 +231,7 @@ namespace Seino.GpuSkin.Editor
             CreateAssets(tex, $"{tex.name}.asset", true);
         }
         
-        [PropertyOrder(207)]
+        [PropertyOrder(212)]
         [Button("保存配置")]
         public void CreateSaveConfig()
         {
@@ -322,6 +328,7 @@ namespace Seino.GpuSkin.Editor
             GpuSkinShader = Config.GpuSkinShader;
             ShaderTexDatas = Config.ShaderTexDatas;
             AnimDatas = Config.AnimDatas;
+            BoneLayers = Config.BoneLayers;
             AssetPathChange();
         }
 
@@ -338,6 +345,7 @@ namespace Seino.GpuSkin.Editor
             Config.GpuSkinShader = GpuSkinShader;
             Config.ShaderTexDatas = ShaderTexDatas;
             Config.AnimDatas = AnimDatas;
+            Config.BoneLayers = BoneLayers;
         }
         
         private void AssetPathChange()

@@ -30,5 +30,8 @@ namespace Seino.GpuSkin.Runtime
 
         [LabelText("切片列表")]
         public List<GpuAnimData> AnimDatas;
+        
+        [LabelText("层级设置")]
+        public List<BoneLayerData> BoneLayers;
     }
 }
