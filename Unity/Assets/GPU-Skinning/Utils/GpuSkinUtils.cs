@@ -5,28 +5,22 @@ namespace Seino.GpuSkin.Runtime
 {
     public static class GpuSkinUtils
     {
-        /// <summary>
-        /// 组合，低8位index, 高8位layer
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="layer"></param>
-        /// <returns></returns>
-        public static int CombineIndexAndLayer(int index, int layer)
+        public static int CombineIndex(int index0, int index1)
         {
-            index &= 0xff;
-            layer &= 0xff;
+            index0 &= 0xff;
+            index1 &= 0xff;
             
-            int combine = (layer << 8) | index;
+            int combine = (index1 << 8) | index0;
             return combine;
         }
 
-        public static int GetIndex(int combine)
+        public static int GetIndex0(int combine)
         {
             int index = combine & 0xff;
             return index;
         }
 
-        public static int GetLayer(int combine)
+        public static int GetIndex1(int combine)
         {
             int layer = (combine >> 8) & 0xff;
             return layer;

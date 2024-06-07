@@ -217,6 +217,7 @@ namespace Seino.GpuSkin.Editor
             
             mesh.name = $"GpuSkinRes_{BakeTarget.name}_Mesh";
             mesh.SetUVs(3, uv4);
+            BakeMesh = mesh;
             
             CreateAssets(mesh, $"{mesh.name}.asset", true);
         }

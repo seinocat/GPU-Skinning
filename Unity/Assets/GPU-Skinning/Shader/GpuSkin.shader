@@ -5,8 +5,10 @@
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimTex ("Anim Tex", 2D) = "white"{}
         _Speed ("Speed", float)  = 1
-        _TimeParam("TimeParam", Vector) = (0, 0, 0, 0) // base层当前和上一动画播放时间, top层当前和上一动画播放时间
-        _LayerParam ("LayerParam", Vector) = (1, 0, 1, 0) //base层当前和上一动画索引,  top层当前和上一动画索引
+        // base层当前和上一动画播放时间, top层当前和上一动画播放时间
+        _TimeParam("TimeParam", Vector) = (0, 0, 0, 0) 
+        // base层层级，当前|上一动画索引,  top层层级，top层当前|上一动画索引
+        _LayerParam ("LayerParam", Vector) = (1, 1, 1, 1) 
     }
     
     SubShader
@@ -64,6 +66,16 @@
                 return float2(u, v);
             }
 
+            int GetIndex0(int combine)
+            {
+                return combine & 0xff;
+            }
+
+            int GetIndex1(int combine)
+            {
+                return (combine >> 8) & 0xff;
+            }
+
             float4x4 GetBoneMatrix(int index)
             {
                 float2 uv = GetUV(index);
@@ -102,17 +114,7 @@
 
                 return frame;
             }
-
-            int GetIndex(int combine)
-            {
-                return combine & 0xff;
-            }
-
-            int GetLayer(int combine)
-            {
-                return (combine >> 8) & 0xff;
-            }
-
+            
             float4 GetAnimation(appdata v, int curAnimIndex, float curAnimPlayTime, int lastAnimIndex, float lastAnimPlayTime)
             {
                 float4 headInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * 0.5, _AnimTex_TexelSize.y * 0.5), 0);
@@ -147,11 +149,29 @@
                 UNITY_SETUP_INSTANCE_ID(v);
                 v2f o;
 
-                float4 baseLayerPos = GetAnimation(v, _LayerParam.x, _TimeParam.x, _LayerParam.y, _TimeParam.y);
-                float4 topLayerPos = GetAnimation(v, _LayerParam.z, _TimeParam.z, _LayerParam.w, _TimeParam.w);
+                int baseLayer = _LayerParam.x;
+                int topLayer = _LayerParam.z;
                 
-                o.vertex = TransformObjectToHClip(baseLayerPos);
+                //只支持两层动画
+                int baseCurIndex = GetIndex0(_LayerParam.y);
+                int topCurIndex = GetIndex0(_LayerParam.w);
+                
+                float4 baseLayerPos = GetAnimation(v, baseCurIndex, _TimeParam.x, GetIndex1(_LayerParam.y), _TimeParam.y); //base层layer固定为1
+                float4 topLayerPos = GetAnimation(v, topCurIndex, _TimeParam.z, GetIndex1(_LayerParam.w), _TimeParam.w);
+
+                int curLayer = v.uv3.x; //当前顶点所属层级
+                int inLayer = step(curLayer & topLayer, topLayer);//是否属于该层级
+                int layerWeight = step(baseLayer + 0.5, topLayer);
+                int sameAnim = step(topCurIndex, baseCurIndex);
+                
+                topLayerPos = lerp(baseLayerPos, topLayerPos, layerWeight);
+                topLayerPos = lerp(topLayerPos, baseLayerPos, sameAnim);
+                
+                float4 finalPos = lerp(baseLayerPos, topLayerPos, inLayer);
+
+                o.vertex = TransformObjectToHClip(finalPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                
                 return o;
             }
 

@@ -16,27 +16,33 @@ namespace Seino.GpuSkin.Runtime
         private void Awake()
         {
             GpuSkinMaterial = Renderer.sharedMaterial;
+            GpuSkinMaterial.SetVector(LayerParam, new Vector4(1, 1, 1, 1));
+            GpuSkinMaterial.SetVector(TimeParam, new Vector4(0, 0, 0, 0));
         }
 
         [Button("切换动画")]
         public void SwitchAnim()
         {
             Vector4 timeParam = GpuSkinMaterial.GetVector(TimeParam);
-            Vector4 layerParam = GpuSkinMaterial.GetVector(TimeParam);
+            Vector4 layerParam = GpuSkinMaterial.GetVector(LayerParam);
 
             if (Layer == GpuSkinLayer.FullBody)
             {
+                int curIndex = GpuSkinUtils.GetIndex0((int)layerParam.y);
+                
+                layerParam.x = (int)Layer;
+                layerParam.y = GpuSkinUtils.CombineIndex(TargetAnima, curIndex);
                 timeParam.y = timeParam.x;
                 timeParam.x = Time.time;
-                layerParam.y = layerParam.x;
-                layerParam.x = TargetAnima;
             }
             else
             {
+                int curIndex = GpuSkinUtils.GetIndex0((int)layerParam.w);
+
+                layerParam.z = (int)Layer;
+                layerParam.w = GpuSkinUtils.CombineIndex(TargetAnima, curIndex);
                 timeParam.w = timeParam.z;
                 timeParam.z = Time.time;
-                layerParam.w = layerParam.z;
-                layerParam.z = TargetAnima;
             }
             
             GpuSkinMaterial.SetVector(LayerParam, layerParam);
