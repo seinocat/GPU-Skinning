@@ -5,7 +5,8 @@
         _MainTex ("Main Tex", 2D) = "white" {}
         _AnimTex ("Anim Tex", 2D) = "white"{}
         _Speed ("Speed", float)  = 1
-        _BlendParam ("BlendParam", Vector) = (1, 0, 1, 0) //当前动画索引&层级, 当前动画播放时间，上一动画索引&层级，上一动画播放时间
+        _TimeParam("TimeParam", Vector) = (0, 0, 0, 0) // base层当前和上一动画播放时间, top层当前和上一动画播放时间
+        _LayerParam ("LayerParam", Vector) = (1, 0, 1, 0) //base层当前和上一动画索引,  top层当前和上一动画索引
     }
     
     SubShader
@@ -25,7 +26,8 @@
             CBUFFER_START(UnityPerMaterial)
             float4 _MainTex_TexelSize;
             float4 _AnimTex_TexelSize;
-            float4 _BlendParam;
+            float4 _LayerParam;
+            float4 _TimeParam;
             float _Speed;
             CBUFFER_END
 
@@ -110,16 +112,9 @@
             {
                 return (combine >> 8) & 0xff;
             }
-            
-            v2f vert (appdata v)
+
+            float4 GetAnimation(appdata v, int curAnimIndex, float curAnimPlayTime, int lastAnimIndex, float lastAnimPlayTime)
             {
-                UNITY_SETUP_INSTANCE_ID(v);
-                v2f o;
-                int curAnimIndex = GetIndex(_BlendParam.x);
-                float curAnimPlayTime = _BlendParam.y;
-                int lastAnimIndex = GetIndex(_BlendParam.z);
-                float lastAnimPlayTime = _BlendParam.w;
-                
                 float4 headInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * 0.5, _AnimTex_TexelSize.y * 0.5), 0);
                 float4 curAnimInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * (0.5 + curAnimIndex), _AnimTex_TexelSize.y * 0.5), 0);
                 float4 lastAnimInfo = SAMPLE_TEXTURE2D_LOD(_AnimTex, sampler_AnimTex, float2(_AnimTex_TexelSize.x * (0.5 + lastAnimIndex), _AnimTex_TexelSize.y * 0.5), 0);
@@ -143,8 +138,19 @@
                 //是否使用融合
                 float4 blendPos = lerp(lastAnimPos, curAnimPos, t);
                 float4 finalPos = lerp(curAnimPos, blendPos, weight);
+
+                return finalPos;
+            }
+            
+            v2f vert (appdata v)
+            {
+                UNITY_SETUP_INSTANCE_ID(v);
+                v2f o;
+
+                float4 baseLayerPos = GetAnimation(v, _LayerParam.x, _TimeParam.x, _LayerParam.y, _TimeParam.y);
+                float4 topLayerPos = GetAnimation(v, _LayerParam.z, _TimeParam.z, _LayerParam.w, _TimeParam.w);
                 
-                o.vertex = TransformObjectToHClip(finalPos);
+                o.vertex = TransformObjectToHClip(baseLayerPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
