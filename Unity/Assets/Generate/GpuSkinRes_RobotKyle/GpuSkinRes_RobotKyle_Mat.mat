@@ -36,6 +36,6 @@ Material:
     - _Speed: 1
     m_Colors:
     - _BlendParam: {r: 1, g: 0, b: 1, a: 0}
-    - _LayerParam: {r: 1, g: 1, b: 16, a: 771}
-    - _TimeParam: {r: 0, g: 0, b: 128.6475, a: 128.45595}
+    - _LayerParam: {r: 1, g: 1, b: 2, a: 769}
+    - _TimeParam: {r: 0, g: 0, b: 4.8363547, a: 3.1152043}
   m_BuildTextureStacks: []
