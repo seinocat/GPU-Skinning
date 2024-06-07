@@ -165,7 +165,9 @@
                 int sameAnim = step(topCurIndex, baseCurIndex);
                 
                 topLayerPos = lerp(baseLayerPos, topLayerPos, layerWeight);
-                topLayerPos = lerp(topLayerPos, baseLayerPos, sameAnim);
+
+                float t = sin(saturate((_Time.y - _TimeParam.z) / 0.25) * (PI / 2.0));
+                topLayerPos = lerp(topLayerPos, lerp(topLayerPos, baseLayerPos, t), sameAnim);
                 
                 float4 finalPos = lerp(baseLayerPos, topLayerPos, inLayer);
 
