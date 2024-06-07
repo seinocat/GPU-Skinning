@@ -42,6 +42,7 @@
                 float2 uv : TEXCOORD0;
                 float2 uv1 : TEXCOORD1;
                 float2 uv2 : TEXCOORD2;
+                float2 uv3 : TEXCOORD3;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
