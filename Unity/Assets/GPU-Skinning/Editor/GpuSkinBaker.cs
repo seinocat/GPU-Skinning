@@ -203,7 +203,6 @@ namespace Seino.GpuSkin.Editor
                 if (leftHand || rightHand) layer |= GpuSkinLayer.Hands;
                 if (leftLeg || rightLeg) layer |= GpuSkinLayer.LowerBody;
                 if (head || leftHand || rightHand || spine) layer |= GpuSkinLayer.UpperBody;
-               
                 
                 boneIndexAndLayer.Add((i, (int)layer));
             }

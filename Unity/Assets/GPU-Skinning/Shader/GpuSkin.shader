@@ -57,15 +57,6 @@
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            float2 GetUV(int index)
-            {
-                int row = index / _AnimTex_TexelSize.z;
-                int col = fmod(index, _AnimTex_TexelSize.z);
-                float u = (col + 0.5) * _AnimTex_TexelSize.x;
-                float v = (row + 0.5) * _AnimTex_TexelSize.y;
-                return float2(u, v);
-            }
-
             int GetIndex0(int combine)
             {
                 return combine & 0xff;
@@ -76,6 +67,15 @@
                 return (combine >> 8) & 0xff;
             }
 
+            float2 GetUV(int index)
+            {
+                int row = index / _AnimTex_TexelSize.z;
+                int col = fmod(index, _AnimTex_TexelSize.z);
+                float u = (col + 0.5) * _AnimTex_TexelSize.x;
+                float v = (row + 0.5) * _AnimTex_TexelSize.y;
+                return float2(u, v);
+            }
+            
             float4x4 GetBoneMatrix(int index)
             {
                 float2 uv = GetUV(index);
