@@ -6,3 +6,7 @@
 
 高级特性：
 分层动画(已实现)
+
+![image](https://github.com/seinocat/Gpu-Skinning/blob/master/Image/EditorTool.png)
+
+![image](https://github.com/seinocat/Gpu-Skinning/blob/master/Image/Mask.gif)
