@@ -12,7 +12,7 @@ namespace Seino.GpuSkin.Runtime
         public AnimationClip Clip;
 
         [LabelText("过渡时间", SdfIconType.Clock), Tooltip("0表示直接切换")] 
-        public float Transition = 0.25f;
+        public float Transition;
 
         [LabelText("事件", SdfIconType.Alarm)] 
         public List<GpuAnimFrameEvent> FrameEvents;

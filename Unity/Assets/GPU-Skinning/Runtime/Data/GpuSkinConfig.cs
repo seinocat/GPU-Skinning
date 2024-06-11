@@ -33,5 +33,7 @@ namespace Seino.GpuSkin.Runtime
         
         [LabelText("层级设置")]
         public List<BoneLayerData> BoneLayers;
+        
+        
     }
 }

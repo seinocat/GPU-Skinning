@@ -4,8 +4,8 @@ using System.IO;
 using Seino.GpuSkin.Runtime;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
-using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEngine;
 using Application = UnityEngine.Application;
 using Object = UnityEngine.Object;
@@ -16,14 +16,34 @@ namespace Seino.GpuSkin.Editor
     {
         private static int Width = 700;
         private static int Height = 890;
-        
-        [MenuItem("Tools/GpuSkin/GpuSkinBaker %#z")]
-        private static void ShowWindow()
+
+        private static GpuSkinBaker CreateWindow()
         {
             var window = GetWindow<GpuSkinBaker>();
             window.titleContent = new GUIContent("GpuSkinBaker");
             window.position = new Rect(Screen.currentResolution.width / 2 - Width / 2, Screen.currentResolution.height / 2 - Height / 2, Width, Height);
+            return window;
+        }
+        
+        [MenuItem("Tools/GpuSkin/GpuSkinBaker %#z")]
+        private static void ShowWindow()
+        {
+            var window = CreateWindow();
             window.Show();
+        }
+        
+        [OnOpenAsset(0)]
+        public static bool OnGpuSkinConfigOpened(int instanceID, int line)
+        {
+            var config = EditorUtility.InstanceIDToObject(instanceID) as GpuSkinConfig;
+            if (config)
+            {
+                var window = CreateWindow();
+                window.Config = config;
+                window.LoadConfig();
+                window.Show();
+            }
+            return config;
         }
         
         // 精度问题，不开放配置
@@ -77,7 +97,7 @@ namespace Seino.GpuSkin.Editor
         public List<GpuSkinShaderTexData> ShaderTexDatas;
 
         [PropertyOrder(80)] 
-        [LabelText("层级设置", SdfIconType.LayersFill), TableList]
+        [LabelText("层级设置", SdfIconType.LayersFill), TableList(IsReadOnly = true)]
         public List<BoneLayerData> BoneLayers = new() {Head, LeftHand, RightHand, Pelvis, LeftLeg, RightLeg};
         
         [PropertyOrder(100)] 
