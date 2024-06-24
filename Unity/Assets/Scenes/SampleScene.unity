@@ -137,8 +137,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Renderer: {fileID: 1513558403}
   GpuSkinMaterial: {fileID: 2100000, guid: 260ba0041a19f7f489cb337cca3350b3, type: 2}
-  TargetAnima: 2
-  Layer: 2
+  TargetAnima: 1
+  Layer: 0
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

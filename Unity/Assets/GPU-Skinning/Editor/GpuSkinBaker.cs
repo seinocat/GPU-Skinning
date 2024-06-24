@@ -326,7 +326,6 @@ namespace Seino.GpuSkin.Editor
                 CreateAssets(Config, $"GpuSkin_{BakeTarget.name}_Config.asset");
             }
 
-            var pos = position;
             SaveConfig();
         }
 
@@ -420,7 +419,7 @@ namespace Seino.GpuSkin.Editor
         private void SaveConfig()
         {
             if (Config == null)
-                return;
+                CreateSaveConfig();
             
             Config.FrameRate = FrameRate;
             Config.BakeTarget = BakeTarget;
