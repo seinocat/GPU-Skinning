@@ -112,7 +112,6 @@
                 int loopFrame = fmod(totalFrame, frameCount); //循环帧数
                 int playEnd = step(frameCount, totalFrame); //判断一下是否播放完
                 int frame = lerp(lerp(loopFrame, frameCount - 1, playEnd), loopFrame, loop);
-
                 return frame;
             }
             

@@ -19,13 +19,9 @@ namespace Seino.GpuSkin.Runtime
             Application.targetFrameRate = 500;
             
             for (int i = 0; i < 10; i++)
-            {
                 for (int j = 0; j < 10; j++)
-                {
                     matrixs[i * 10 + j] = Matrix4x4.TRS(new Vector3(j, 0, i), Quaternion.identity, Vector3.one);
-                }
-            }
-            
+
             List<Matrix4x4> trsMatrixs = new List<Matrix4x4>();
             //设置坐标
             for (int i = 0; i < 100; i++)
