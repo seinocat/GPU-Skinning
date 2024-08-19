@@ -26,6 +26,7 @@
             #include  "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             CBUFFER_START(UnityPerMaterial)
+            StructuredBuffer<float4x4> _TRSBuffer;
             float4 _MainTex_TexelSize;
             float4 _AnimTex_TexelSize;
             float4 _LayerParam;
@@ -144,7 +145,7 @@
                 return finalPos;
             }
             
-            v2f vert (appdata v)
+            v2f vert (appdata v, uint instanceID : SV_InstanceID)
             {
                 UNITY_SETUP_INSTANCE_ID(v);
                 v2f o;
@@ -170,8 +171,9 @@
                 topLayerPos = lerp(topLayerPos, lerp(topLayerPos, baseLayerPos, t), sameAnim);
                 
                 float4 finalPos = lerp(baseLayerPos, topLayerPos, inLayer);
+                float4 worldPos = mul(_TRSBuffer[instanceID], finalPos);
 
-                o.vertex = TransformObjectToHClip(finalPos);
+                o.vertex = TransformWorldToHClip(worldPos);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 
                 return o;

@@ -1,3 +1,5 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
@@ -12,6 +14,11 @@ public class FPS : MonoBehaviour
     private float m_CurTime;
     private float m_fps;
     private float memoryUsageMB;
+
+    private void Awake()
+    {
+        fpsText = this.GetComponent<Text>();
+    }
 
     // Update is called once per frame
     void Update()
