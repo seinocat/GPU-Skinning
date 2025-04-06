@@ -2,7 +2,7 @@
   "name": "com.seinocat.gpuskin",
   "displayName": "GpuSKin",
   "description": "GpuSKin插件",
-  "url" : "https://github.com/Svily/GPU-Skinning.git",
+  "url" : "https://github.com/seinocat/GPU-Skinning.git",
   "version": "0.0.1",
   "unity": "2020.3",
   "author" : "seinocat"
